@@ -5,6 +5,7 @@ const path = require('path')
 const authRoutes = require('./GenRoutes/auth');
 const chatRoutes = require('./GenRoutes/chats');
 const messageRoutes = require('./GenRoutes/messages');
+const userRoutes = require('./GenRoutes/users');
 const connectDB = require('./db');
 
 connectDB();
@@ -21,7 +22,7 @@ app.use((req, res, next) => {
 app.use('/messages', messageRoutes);
 app.use('/auth', authRoutes); 
 app.use('/chats', chatRoutes); 
-
+app.use('/users', userRoutes)
 
 app.use(express.static(path.join(__dirname, 'frontend')))
 
@@ -34,9 +35,7 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'LogInPage.html'));
   });
 
-  app.get('/signup', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend', 'SignupPage.html'));
-  });
+
 
 app.get('/settings', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'settings.html'));

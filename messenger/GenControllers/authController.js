@@ -1,3 +1,5 @@
+const path = require('path');
+
 exports.loginUser = (req, res) => {
     const { username, password } = req.body;
     if (!username || !password) {
@@ -45,4 +47,15 @@ exports.signUpUser = (req, res) => {
             status: "success"
         }
     );
+};
+
+
+exports.drawSignUpPage = (req, res) => {
+    const pagePath = path.join(__dirname, '..', 'frontend', 'SignupPage.html');
+    res.sendFile(pagePath);
+};
+
+exports.drawLogInPage = (req, res) => {
+    const pagePath = path.join(__dirname, '..', 'frontend', 'LogInPage.html');
+    res.sendFile(pagePath);
 };
