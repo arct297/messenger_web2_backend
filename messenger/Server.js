@@ -1,31 +1,30 @@
 const express = require('express');
+
 const app = express();
 const path = require('path')
 const authRoutes = require('./GenRoutes/auth');
 const chatRoutes = require('./GenRoutes/chats');
+const messageRoutes = require('./GenRoutes/messages');
+const connectDB = require('./db');
+
+connectDB();
 
 app.use(express.json());
 
 app.use((req, res, next) => {
-    console.log(`Visited URL: ${req.originalUrl}`);
-    next();
+  console.log(`Visited URL: ${req.originalUrl}`);
+  next();
 });
 
-// const requireAdmin = (req, res, next) => {
-//     const isAdmin = req.query.admin === 'true'; // Check if ?admin=true
-//     console.log(`Admin Query Param: ${req.query.admin}`); // Debugging log
-//     if (isAdmin) {
-//         next();
-//     } else {
-//         res.status(403).send('Nothing here');
-//     }
-// };
 
 // Routes
+app.use('/messages', messageRoutes);
 app.use('/auth', authRoutes); 
 app.use('/chats', chatRoutes); 
 
+
 app.use(express.static(path.join(__dirname, 'frontend')))
+
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
