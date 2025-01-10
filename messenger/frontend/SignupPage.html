@@ -7,28 +7,60 @@
     <title>Sign up</title>
 </head>
 <body>
-    <div class = "main">
+    <div class="main">
         <div class="text-above-form">
             <h1>Sign in to Hurricane!</h1>
             <p>Please sign in to your account by entering login and password below! </p>
         </div>
-    <div class="login-container">
-        <h1>Sign up</h1>
-        <form id="login-form">
-            <input type="text" placeholder="login" id="login" required>
-            <input type="password" placeholder="password" id="pass" required>
-            <input type="email" placeholder="email (optional)" id="email">
-            <input type="username" placeholder="name" id="name" required>
-            <div class="stay-signed-in">
-                <input type="checkbox" id="stay-signed-in">
-                <label for="stay-signed-in">Stay signed in</label>
-            </div>
-            <button type="submit">Sign up</button>
-        </form>
-        <p>Already have an account? <a href="/auth/login/">Log in here</a></p>
-    </div>
+        <div class="login-container">
+            <h1>Sign up</h1>
+            <form id="signup-form">
+                <input type="text" placeholder="login" id="login" required>
+                <input type="password" placeholder="password" id="password" required>
+                <input type="email" placeholder="email (optional)" id="email">
+                <input type="text" placeholder="name" id="username" required>
+                <div class="stay-signed-in">
+                    <input type="checkbox" id="stay-signed-in">
+                    <label for="stay-signed-in">Stay signed in</label>
+                </div>
+                <button type="submit">Sign up</button>
+            </form>
+            <p>Already have an account? <a href="/auth/login/">Log in here</a></p>
+        </div>
     </div>
     
-    <script src="/Login.js"></script>
+    <script>
+        document.getElementById('signup-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const login = document.getElementById('login').value;
+            const password = document.getElementById('password').value;
+            const email = document.getElementById('email').value;
+            const username = document.getElementById('username').value;
+            const staySignedIn = document.getElementById('stay-signed-in').checked;
+
+            try {
+                const response = await fetch('/auth/signup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ login, password, email, username, staySignedIn })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert('Signup successful!');
+                    window.location.href = '/auth/login';
+                } else {
+                    alert(`Error: ${result.message}`);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            }
+        });
+    </script>
 </body>
 </html>
