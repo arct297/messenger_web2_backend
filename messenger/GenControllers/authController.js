@@ -1,8 +1,11 @@
 const path = require('path');
 
+const tokenService = require('../services/tokenService');
 const User = require('../models/user');
+const Session = require('../models/session')
 
 
+// Draw pages:
 exports.drawSignUpPage = (req, res) => {
     const pagePath = path.join(__dirname, '..', 'frontend', 'SignupPage.html');
     res.sendFile(pagePath);
@@ -13,8 +16,12 @@ exports.drawLogInPage = (req, res) => {
     res.sendFile(pagePath);
 };
 
+
+// Operate log in request:
 exports.loginUser = async (req, res) => {
     const { login, password } = req.body;
+
+    // Request data validation:
     if (!login || !password) {
         return res.status(400).json(
             { 
@@ -25,25 +32,59 @@ exports.loginUser = async (req, res) => {
         );
     }
 
+    // Main part
     try {
-        const existingUser = await User.findOne({login : login, password : password});
+        // Try to find user with passed login and password:
+        // TODO: password encrypting
+        const existingUser = await User.findOne(
+            {
+                login : login, 
+                password : password
+            }
+        );
         if (!existingUser) {
-            return res.status(403).json(
+            // User with such login and password is not found:
+            return res.status(401).json(
                 { 
                     message: 'Wrong login or password',
-                    code: 403, 
+                    code: 401, 
                     status: "error"
                 }
             )
         } 
-        res.status(200).json({
-            message: 'User logged in successfully',
-            code: 201,
-            status: 'success',
+
+        await Session.deleteMany({ user : existingUser._id})
+
+        const payload = { id: existingUser._id, role: existingUser.role };
+        const accessToken = tokenService.generateAccessToken(payload);
+        const refreshToken = tokenService.generateRefreshToken(payload);
+        
+        const session = new Session({ user : existingUser._id, accessToken : accessToken, refreshToken : refreshToken});
+        await session.save();
+
+        res.cookie('accessToken', accessToken, {
+            httpOnly: true,
+            // secure: true,   
+            sameSite: 'Strict',
+            maxAge: 60 * 60 * 1000, 
+        });
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            // secure: true,
+            sameSite: 'Strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000,
         });
 
+        return res.status(200).json(
+            {
+                message: 'User logged in successfully',
+                code: 200,
+                status: 'success',
+            }
+        );
+
     } catch {
-        console.error('Error during user login', error);
+        console.error('Error during user login');
         res.status(500).json({
           message: 'Internal server error',
           code: 500,

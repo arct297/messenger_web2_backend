@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/Loginstyles.css">
+    <link rel="stylesheet" href="/styles/Loginstyles.css">
     <title>Sign up</title>
 </head>
 <body>
@@ -29,38 +29,6 @@
         </div>
     </div>
     
-    <script>
-        document.getElementById('signup-form').addEventListener('submit', async (event) => {
-            event.preventDefault();
-
-            const login = document.getElementById('login').value;
-            const password = document.getElementById('password').value;
-            const email = document.getElementById('email').value;
-            const username = document.getElementById('username').value;
-            const staySignedIn = document.getElementById('stay-signed-in').checked;
-
-            try {
-                const response = await fetch('/auth/signup', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ login, password, email, username, staySignedIn })
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    alert('Signup successful!');
-                    window.location.href = '/auth/login';
-                } else {
-                    alert(`Error: ${result.message}`);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('An error occurred. Please try again.');
-            }
-        });
-    </script>
+    <script src="/js/webpages/signup.js"></script>
 </body>
 </html>

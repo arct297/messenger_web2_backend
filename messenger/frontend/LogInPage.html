@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/Loginstyles.css">
+    <link rel="stylesheet" href="/styles/Loginstyles.css">
     <title>Login</title>
 </head>
 <body>
@@ -21,41 +21,13 @@
                     <input type="checkbox" id="stay-signed-in">
                     <label for="stay-signed-in">Stay signed in</label>
                 </div>
+                <p id="result"></p>
                 <button type="submit">Log In</button>
             </form>
             <p>Don't have an account? <a href="/auth/signup/">Sign up here</a></p>
         </div>
     </div>
 
-    <script>
-        document.getElementById('login-form').addEventListener('submit', async (event) => {
-            event.preventDefault(); // Prevent the default form submission
-
-            const login = document.getElementById('login').value;
-            const password = document.getElementById('password').value;
-
-            try {
-                const response = await fetch('/auth/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ login, password })
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    alert('Login successful!');
-                    window.location.href = '/messenger'; 
-                } else {
-                    alert(`Error: ${result.message}`);
-                }
-            } catch (error) {
-                console.error('Error during login:', error);
-                alert('An error occurred. Please try again.');
-            }
-        });
-    </script>
+    <script type="module" src="/js/webpages/login.js"></script>
 </body>
 </html>
