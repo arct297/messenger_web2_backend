@@ -52,7 +52,7 @@ exports.loginUser = async (req, res) => {
                 }
             )
         } 
-
+        // TODO: modify logic
         await Session.deleteMany({ user : existingUser._id})
 
         const payload = { id: existingUser._id, role: existingUser.role };

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Hurricane</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -70,12 +70,14 @@
                     </div>
                 </div>
             </div>
-            <!-- <div class="menu-panel">
-                <div class="menu-item">Ic1</div>
-                <div class="menu-item">Ic2</div>
-                <div class="menu-item">Ic3</div>
-                <div class="menu-item">Ic4</div>
-            </div> -->
+            <div class="menu-panel gradient1">
+                <div class="menu-item">
+                    *
+                </div>
+                <div id="add-chat-button" class="menu-item">
+                    +
+                </div>
+            </div>
         </div>
 
         <div class="chat-block">
@@ -151,7 +153,25 @@
                 </div>
             </div>
         </div>
-
+        
+        <div id="modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Create chat</h2>
+                    <button type="button" class="close-modal-button">&times;</button>
+                </div>
+                <div class="modal-form">
+                    <div class="modal-form-parameter">
+                        <label for="partner-username">Username of partner</label>
+                        <input type="text" id="partner-username" name="username" placeholder="Type..." required>
+                    </div>
+                    <p id="chat-creating-result"></p>
+                    <button type="button" id="create-chat-button" class="create-chat-button">Create chat</button>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <script type="module" src="/js/webpages/messenger.js"></script>
 </body>
 </html>

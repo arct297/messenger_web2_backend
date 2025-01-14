@@ -7,7 +7,7 @@ const UserSchema = new mongoose.Schema({
 	username: { type: String, required: true },
 	staySignedIn: { type: Boolean, required: false, default : false},
 	role : {type: String, enum: ['user', 'admin'], default: 'user'},
-	Avatar: { type: String, required: false, default : 'default' },
+	avatar: { type: String, required: false, default : 'default' },
 	timestamp: { type: Date, default: Date.now },
 	}, {
 		collection: 'users',
