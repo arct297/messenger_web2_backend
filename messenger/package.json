@@ -1,6 +1,16 @@
 {
   "dependencies": {
+    "config": "^3.3.12",
+    "cookie-parser": "^1.4.7",
+    "cross-env": "^7.0.3",
     "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.9.5",
     "nodemon": "^3.1.9"
+  },
+  "scripts": {
+    "start": "cross-env NODE_ENV=development node server.js",
+    "dev": "cross-env NODE_ENV=development nodemon server.js",
+    "secret": "node generateSecretKey.js"
   }
 }

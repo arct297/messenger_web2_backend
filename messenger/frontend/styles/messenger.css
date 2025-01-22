@@ -20,6 +20,7 @@ body {
     display: flex;
     align-items: center;
     flex-direction: column;
+    box-sizing: border-box;
     width: 25%;
     /* background-color: #4b479f;
     background-color: #f5f5f5;
@@ -51,6 +52,7 @@ body {
     border: 0px;
     border-radius: 10px;
     padding-left: 10px;
+    box-sizing: border-box;
 }
 
 .chats-block-search input:focus {
@@ -64,10 +66,11 @@ body {
 
 .chats-block .chats-list {
     display: flex;
-    height: 90%;
+    height: 83%;
     background-color: #dbdfef;
     width: 100%;
     flex-direction: column;
+    box-sizing: border-box;
 }
 
 .chats-list-chat {
@@ -76,6 +79,7 @@ body {
     padding: 5px;
     width: 100%;
     border-bottom: 1px solid gray;
+    box-sizing: border-box;
 }
 
 .selected-chat {
@@ -117,14 +121,30 @@ body {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    height: 7%;
     width: 100%;
     box-sizing: border-box;
+    height: 7%;
+}
+
+.chats-block .menu-panel .menu-item {
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 
+.chats-block .menu-panel .menu-item:hover {
+    cursor: pointer;
+    background-color: #5a569c;
+    transition: ease 1s;
+}
+
 .chat-block {
     display: flex;
+    box-sizing: border-box;
     align-items: center;
     flex-direction: column;
     width: 75%;
@@ -329,4 +349,113 @@ body {
 
 .chat-block .chat-block-input .send-button-block button:hover {
     cursor: pointer;
+}
+
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.modal-content {
+    background-color: white;
+    /* padding: 10px 50px 50px 50px; */
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 500px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    font-size: large;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Элементы по краям */
+    width: 100%; /* Занять всю ширину контейнера */
+    margin-bottom: 20px; /* Отступ снизу для красоты */
+    padding-top: 20px;
+    padding-left: 30px;
+    padding-right: 10px;
+    box-sizing: border-box;
+}
+
+.modal-header h2{
+    margin: 0;
+}
+
+.modal-form {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    /* align-items: flex-start; */
+    padding-left: 30px;
+    padding-right: 30px;
+    padding-bottom: 30px;
+    width: 100%;
+    gap: 15px;
+    box-sizing: border-box;
+}
+
+.modal-form-parameter {
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-form-parameter input {
+    padding: 5px;
+    border: 1px solid #5cad8a;
+    border-radius: 10px;
+    min-height: 30px;
+}
+
+.close-modal-button {
+    font-size: 50px;
+    cursor: pointer;
+    color: red;
+    background-color: rgba(0, 0, 0, 0);
+    border: none;
+    padding-bottom: 5px;
+
+}
+
+.create-chat-button {
+    margin-top: 20px;
+    padding: 7px;
+    border: none;
+    border-radius: 10px;
+    font-size: large;
+}
+
+.create-chat-button:hover {
+    background-color: #7f7cb5;
+    transition: 0.5s;
+}
+
+#chat-creating-result {
+    display: none;
+    padding: 0;
+    margin: 0;
+}
+
+.chat-creating-result-success {
+    color: green;
+}
+
+.chat-creating-result-warning {
+    color: yellow;
+}
+
+.chat-creating-result-error {
+    color: red;
 }
