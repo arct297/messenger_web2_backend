@@ -25,6 +25,9 @@ app.use((req, res, next) => {
 app.use('/auth', authRoutes); 
 app.use('/chats', chatRoutes); 
 
+const settingsRoutes = require('./GenRoutes/settings');
+app.use('/settings', settingsRoutes);
+
 app.use(express.static(path.join(__dirname, 'frontend')))
 
 app.get('/', (req, res) => {
