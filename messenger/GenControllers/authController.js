@@ -1,4 +1,5 @@
 const path = require('path');
+const bcrypt = require('bcrypt');
 
 const tokenService = require('../services/tokenService');
 const User = require('../models/user');
@@ -34,24 +35,24 @@ exports.loginUser = async (req, res) => {
 
     // Main part
     try {
-        // Try to find user with passed login and password:
-        // TODO: password encrypting
-        const existingUser = await User.findOne(
-            {
-                login : login, 
-                password : password
-            }
-        );
+        const existingUser = await User.findOne({ login });
         if (!existingUser) {
-            // User with such login and password is not found:
-            return res.status(401).json(
-                { 
-                    message: 'Wrong login or password',
-                    code: 401, 
-                    status: "error"
-                }
-            )
-        } 
+            return res.status(401).json({
+                message: 'Wrong login or password',
+                code: 401,
+                status: 'error',
+            });
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, existingUser.password);
+        if (!isPasswordValid) {
+            return res.status(401).json({
+                message: 'Wrong login or password',
+                code: 401,
+                status: 'error',
+            });
+        }
+
         // TODO: modify logic
         await Session.deleteMany({ user : existingUser._id})
 
@@ -95,35 +96,9 @@ exports.loginUser = async (req, res) => {
 
 
 exports.signUpUser = async (req, res) => {
-    const { login, password, email, username, staySignedIn } = req.body;
-    if (!login || !password || !email || !username) {
-        return res.status(400).json(
-            { 
-                message: 'All fields are required',
-                code: 400, 
-                status: "error"
-            }
-        );
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        return res.status(400).json({
-            message: 'Invalid email format',
-            code: 400,
-            status: "error",
-        });
-    }
-
-    if (password.length < 6) {
-        return res.status(400).json({
-            message: 'Password must be at least 6 characters long',
-            code: 400,
-            status: "error"
-        });
-    }
-    
     try {
+        const { login, password, email, username, staySignedIn } = req.body;
+
         // Checking for uniqueness of values
         const existingUser = await User.findOne({
           $or: [{ login }, { email }, { username }],
@@ -143,8 +118,11 @@ exports.signUpUser = async (req, res) => {
           });
         }
     
+        const saltRounds = 15; 
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+
         // Creating new user
-        const newUser = new User({ login, password, email, username, staySignedIn });
+        const newUser = new User({ login, password : hashedPassword, email, username, staySignedIn });
         await newUser.save();
     
         res.status(201).json({

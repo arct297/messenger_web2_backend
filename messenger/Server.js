@@ -1,7 +1,7 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
-const config = require('config');
 const path = require('path')
+require('dotenv').config();
 
 const authRoutes = require('./GenRoutes/auth');
 const chatRoutes = require('./GenRoutes/chats');
@@ -81,7 +81,7 @@ app.use((err, req, res, next) => {
 });
 
 
-const port = config.get('port');
+const port = process.env.SERVER_PORT;
 app.listen(port, () => {
     console.log(`http://localhost:${port}`);
 });

@@ -1,6 +1,3 @@
-// import { setAccessToken, setRefreshToken } from '/js/scripts/localStorage/tokens.js';
-// import { fetchAPIWithToken } from '/js/scripts/requests/request.js';
-
 const resultElement = document.getElementById('result');
 
 const loginElement = document.getElementById('login');
@@ -33,10 +30,13 @@ document.getElementById('login-form').addEventListener('submit', async (event) =
 
         const responseJSON = await response.json();
         
-        if (response.status == 200) {
+        if (response.status == 200 && responseJSON.status == "success") {
             window.location.href = "/messenger/"
        
-        } else if (response.status == 401) {
+        } else if (response.status == 400 && responseJSON.status == "error") {
+            return displayUnsuccessfullLogin('All fields (login, password) are required!');
+
+        } else if (response.status == 401 && responseJSON.status == "warning") {
             return displayUnsuccessfullLogin('Wrong login or password. Try again!');
 
         } else {

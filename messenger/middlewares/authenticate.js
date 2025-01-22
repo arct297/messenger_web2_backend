@@ -1,5 +1,3 @@
-const config = require('config');
-
 const tokenService = require('../services/tokenService')
 
 const authenticate = async (req, res, next) => {

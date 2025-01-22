@@ -1,8 +1,8 @@
 const jwt = require('jsonwebtoken');
-const config = require('config'); 
+require('dotenv').config();
 
-const JWT_ACCESS_SECRET = config.get('jwtSecret.access');
-const JWT_REFRESH_SECRET = config.get('jwtSecret.refresh');
+const JWT_ACCESS_SECRET = process.env.ACCESS_SECRET;
+const JWT_REFRESH_SECRET = process.env.REFRESH_SECRET;
 
 const ACCESS_TOKEN_EXPIRATION = '1h';
 const REFRESH_TOKEN_EXPIRATION = '7d';
