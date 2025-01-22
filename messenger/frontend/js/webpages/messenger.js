@@ -6,6 +6,8 @@ const createChatResultElement = document.getElementById("chat-creating-result");
 const createChatButton = document.getElementById("create-chat-button");
 const partnerUserNameElement = document.getElementById("partner-username");
 
+const logOutButtonElement = document.getElementById("logout-button");
+
 addChatButton.addEventListener('click', () => {
     console.log('clicked');
     modal.style.display = 'flex';
@@ -63,4 +65,41 @@ createChatButton.addEventListener('click', async () => {
         createChatResultElement.className = "chat-creating-result-error";
     }
 
+});
+
+
+logOutButtonElement.addEventListener('click', async () => {
+    try {
+        const response = await fetch('/auth/logout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(
+                { 
+                    fullLogOut : false,
+                }
+            )
+        });
+
+        // const responseJSON = await response.json();
+        
+        if (response.status === 200) {
+            window.location.href = "/auth/login"
+        } else {
+            console.log("error");
+        }
+        // } else if (response.status === 404) {
+        //     createChatResultElement.textContent = "User with such username is not found!";
+        //     createChatResultElement.className = "chat-creating-result-warning";
+        // } else {
+        //     createChatResultElement.textContent = "Error... Try again later!";
+        //     createChatResultElement.className = "chat-creating-result-error";
+        // }
+        
+    } catch (error) {
+        console.log(error)
+        // createChatResultElement.textContent = "Error... Try again later!";
+        // createChatResultElement.className = "chat-creating-result-error";
+    }
 });

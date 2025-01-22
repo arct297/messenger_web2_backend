@@ -29,7 +29,9 @@ document.getElementById('login-form').addEventListener('submit', async (event) =
         });
 
         const responseJSON = await response.json();
-        
+        console.log(responseJSON);
+        console.log(responseJSON.status);
+
         if (response.status == 200 && responseJSON.status == "success") {
             window.location.href = "/messenger/"
        

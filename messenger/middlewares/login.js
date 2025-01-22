@@ -8,7 +8,7 @@ const checkLoginData = async (req, res, next) => {
                 { 
                     message: 'All fields are required',
                     code: 400, 
-                    status: "warning"
+                    status: "error"
                 }
             );
         }

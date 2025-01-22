@@ -40,7 +40,7 @@ exports.loginUser = async (req, res) => {
             return res.status(401).json({
                 message: 'Wrong login or password',
                 code: 401,
-                status: 'error',
+                status: 'warning',
             });
         }
 
@@ -49,7 +49,7 @@ exports.loginUser = async (req, res) => {
             return res.status(401).json({
                 message: 'Wrong login or password',
                 code: 401,
-                status: 'error',
+                status: 'warning',
             });
         }
 
@@ -134,6 +134,33 @@ exports.signUpUser = async (req, res) => {
 
     } catch (error) {
         console.error('Error during user signup:', error);
+        res.status(500).json({
+          message: 'Internal server error',
+          code: 500,
+          status: 'error',
+        });
+    }
+};
+
+
+exports.logOut = async (req, res) => {
+    try {
+        const { fullLogOut } = req.body;
+        
+        res.cookie('accessToken', '', {
+            httpOnly: true,
+            sameSite: 'Strict',
+            maxAge: 0,
+        });
+        res.cookie('refreshToken', '', {
+            httpOnly: true,
+            sameSite: 'Strict',
+            maxAge: 0,
+        });
+        res.redirect("/auth/login");
+
+    } catch (error) {
+        console.error('Error during user logout:', error);
         res.status(500).json({
           message: 'Internal server error',
           code: 500,
