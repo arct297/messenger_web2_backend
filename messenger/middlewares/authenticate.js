@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-=======
-const config = require('config');
-
->>>>>>> 502199d73927a41559abbd27a8269a7d97714f07
 const tokenService = require('../services/tokenService')
 
 const authenticate = async (req, res, next) => {
