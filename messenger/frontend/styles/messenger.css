@@ -82,6 +82,10 @@ body {
     box-sizing: border-box;
 }
 
+.chats-list-chat:hover {
+    background-color: #c5cce6;
+}
+
 .selected-chat {
     background-color: #c5cce6;
 }
@@ -152,6 +156,16 @@ body {
     background-color: #e3e2ed;
 }
 
+
+.unselected-chat-block {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+
 .gradient1 {
     background-image: linear-gradient(to right, #9593ba, #7f7cb5);
 }
@@ -159,6 +173,7 @@ body {
 .gradient2 {
     background-image: linear-gradient(to right, #7f7cb5, #6460b2);
 }
+
 
 
 .chat-block .chat-block-header {

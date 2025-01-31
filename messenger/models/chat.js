@@ -1,19 +1,26 @@
 const mongoose = require('mongoose');
 
 const chatSchema = new mongoose.Schema({
-  	title: { type: String, required: false},
+  	title: { 
+        type: String, 
+        required: function() { return this.chatType === 'group'; } 
+    },
  	participants: [{ 
 		type: mongoose.Schema.Types.ObjectId, 
 		ref: 'User', 
 		required: true 
   	}],
-	messages: [{ 
-		type: mongoose.Schema.Types.ObjectId, 
-		ref: 'Message'
-	}],
-	avatar: { type: String, required: false, default : 'default' },
-	chatType : {type: String, enum: ['group', 'private'], default: 'private'},
-	}, {
+	avatar: { 
+        type: String, 
+        default: null 
+    },
+	chatType: {
+        type: String, 
+        enum: ['group', 'private'], 
+        default: 'private',
+        required: true
+    },
+}, {
 	collection: 'chats',
 	timestamps: true
 });

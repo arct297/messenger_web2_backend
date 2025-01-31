@@ -75,6 +75,11 @@ exports.loginUser = async (req, res) => {
             sameSite: 'Strict',
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
+        console.log(existingUser._id.toString());
+        res.cookie('selfUserId', existingUser._id.toString(), {
+            httpOnly : false,
+            sameSite: 'Strict',
+        });
 
         return res.status(200).json(
             {

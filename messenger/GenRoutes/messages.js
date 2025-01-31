@@ -5,7 +5,9 @@ const {
   getMessages,
 } = require('../GenControllers/messagesController');
 
-router.post('/', createMessage);
-router.get('/', getMessages);
+const authenticate = require('../middlewares/authenticate')
+
+router.post('/', authenticate, createMessage);
+router.get('/', authenticate, getMessages);
 
 module.exports = router;

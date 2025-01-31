@@ -7,9 +7,11 @@ const {
   deleteChat,
 } = require('../GenControllers/chatsController');
 
-router.get('/', getChatList);
+const authenticate = require('../middlewares/authenticate')
+
+router.get('/', authenticate, getChatList);
+router.post('/', authenticate, createChat);
 router.get('/:id', getChatById);
-router.post('/', createChat);
 router.delete('/:id', deleteChat);
 
 module.exports = router;
