@@ -1,10 +1,10 @@
 const mongoose = require('mongoose'); 
-require('dotenv').config();
-
+const config = require('config');
 
 const connectDB = async () => { 
 	try { 
-		const uri = process.env.DB_URI;
+		const uri = config.get("db.uri");
+    	console.log(uri); 
 		mongoose.connect(uri, { ssl: false }
 		);
 		console.log('MongoDB Connected'); 

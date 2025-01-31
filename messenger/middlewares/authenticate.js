@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+const config = require('config');
+
+>>>>>>> 502199d73927a41559abbd27a8269a7d97714f07
 const tokenService = require('../services/tokenService')
 
 const authenticate = async (req, res, next) => {
@@ -24,12 +29,11 @@ const authenticate = async (req, res, next) => {
                     httpOnly: true,
                     sameSite: 'Strict',
                     maxAge: 60 * 60 * 1000,
-                }); 
+                });
 
                 req.user = tokenService.decodeToken(newAccessToken);
                 console.log(req.user);
                 return next();
-
             } catch (refreshError) {
                 console.error('Refresh token invalid:', refreshError.message);
                 return res.redirect('/auth/login');

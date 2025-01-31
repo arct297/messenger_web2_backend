@@ -81,7 +81,11 @@ app.use((err, req, res, next) => {
 });
 
 
+<<<<<<< HEAD
 const port = process.env.SERVER_PORT;
+=======
+const port = config.get('port');
+>>>>>>> 502199d73927a41559abbd27a8269a7d97714f07
 app.listen(port, () => {
     console.log(`http://localhost:${port}`);
 });
