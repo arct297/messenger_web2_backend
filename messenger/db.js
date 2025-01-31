@@ -1,10 +1,9 @@
 const mongoose = require('mongoose'); 
-require('dotenv').config();
-
 
 const connectDB = async () => { 
 	try { 
 		const uri = process.env.DB_URI;
+    	console.log(uri); 
 		mongoose.connect(uri, { ssl: false }
 		);
 		console.log('MongoDB Connected'); 

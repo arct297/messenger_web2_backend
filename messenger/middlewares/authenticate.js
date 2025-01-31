@@ -24,12 +24,11 @@ const authenticate = async (req, res, next) => {
                     httpOnly: true,
                     sameSite: 'Strict',
                     maxAge: 60 * 60 * 1000,
-                }); 
+                });
 
                 req.user = tokenService.decodeToken(newAccessToken);
                 console.log(req.user);
                 return next();
-
             } catch (refreshError) {
                 console.error('Refresh token invalid:', refreshError.message);
                 return res.redirect('/auth/login');
