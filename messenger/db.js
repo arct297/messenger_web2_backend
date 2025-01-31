@@ -1,9 +1,8 @@
 const mongoose = require('mongoose'); 
-const config = require('config');
 
 const connectDB = async () => { 
 	try { 
-		const uri = config.get("db.uri");
+		const uri = process.env.DB_URI;
     	console.log(uri); 
 		mongoose.connect(uri, { ssl: false }
 		);
