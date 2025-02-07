@@ -8,7 +8,7 @@ const chatRoutes = require('./GenRoutes/chats');
 const messageRoutes = require('./GenRoutes/messages');
 const userRoutes = require('./GenRoutes/users');
 const messengerRoutes = require('./GenRoutes/messenger');
-const settingsRoutes = require('./GenRoutes/settings');
+
 
 
 const app = express();
@@ -56,9 +56,13 @@ app.use('/auth', authRoutes);
 app.use('/chats', chatRoutes); 
 app.use('/users', userRoutes)
 app.use('/messenger', messengerRoutes);
+
+
+const settingsRoutes = require('./GenRoutes/settings');
 app.use('/settings', settingsRoutes);
 
-// Main path controller
+app.use(express.static(path.join(__dirname, 'frontend')))
+
 app.get('/', (req, res) => {
     res.redirect('/messenger');
 });
