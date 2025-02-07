@@ -4,8 +4,7 @@ const connectDB = async () => {
 	try { 
 		const uri = process.env.DB_URI;
     	console.log(uri); 
-		mongoose.connect(uri, { ssl: false }
-		);
+		mongoose.connect(uri)
 		console.log('MongoDB Connected'); 
  	} catch (error) { 
 		console.error('MongoDB connection error:', error); 
