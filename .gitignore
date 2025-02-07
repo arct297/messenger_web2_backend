@@ -3,7 +3,6 @@ package-lock.json
 *.zip
 
 config/
-.env
 
 node_modules/
 messenger/node_modules/
