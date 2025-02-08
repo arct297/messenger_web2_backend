@@ -58,9 +58,6 @@ app.use('/users', userRoutes)
 app.use('/messenger', messengerRoutes);
 app.use('/settings', settingsRoutes);
 
-const settingsRoutes = require('./GenRoutes/settings');
-app.use('/settings', settingsRoutes);
-
 app.use(express.static(path.join(__dirname, 'frontend')))
 
 app.get('/', (req, res) => {

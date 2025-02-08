@@ -1,10 +1,11 @@
 const express = require('express');
-const { updateUserSettings } = require('../GenControllers/settingsController');
-const authenticate = require('../middlewares/authenticate'); // Миддлвар для проверки токена
-
 const router = express.Router();
 
-// PUT запрос для обновления настроек
-router.put('/', authenticate, updateUserSettings);
+const authenticate = require('../middlewares/authenticate');
+const { drawSettingsPage, updateUserSettings } = require('../GenControllers/settingsController');
+
+router.get('/', authenticate, drawSettingsPage);
+
+router.post('/update', authenticate, updateUserSettings);
 
 module.exports = router;

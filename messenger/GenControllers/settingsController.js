@@ -1,9 +1,13 @@
-const User = require('../models/user'); // Подключаем модель пользователя
+const User = require('../models/user');
+
+const drawSettingsPage = (req, res) => {
+    res.send('Settings Page Loaded');
+};
 
 const updateUserSettings = async (req, res) => {
     try {
-        const userId = req.user.id; // Предполагается, что userId берется из токена авторизации
-        const { name, avatar, password } = req.body; // Получаем поля из тела запроса
+        const userId = req.user.id;
+        const { name, avatar, password } = req.body;
 
         const updateData = {};
         if (name) updateData.name = name;
@@ -19,4 +23,4 @@ const updateUserSettings = async (req, res) => {
     }
 };
 
-module.exports = { updateUserSettings };
+module.exports = { drawSettingsPage, updateUserSettings };
