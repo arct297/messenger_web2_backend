@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Hurricane</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@300..800&family=Monda&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="/styles/messenger.css">
 </head>
 <body>
     <div class="main">
@@ -21,9 +21,9 @@
                 <input type="text" placeholder="Type to search...">
             </div>
             <div class="chats-list">
-                <div class="chats-list-chat">
+                <!-- <div class="chats-list-chat">
                     <div class="preview-image-block">
-                        <img src="./src/default_avatar.png">
+                        <img src="/src/default_avatar.png">
                     </div>
                     <div class="chat-info-block">
                         <div class="chat-title">
@@ -39,7 +39,7 @@
                 </div>
                 <div class="chats-list-chat selected-chat">
                     <div class="preview-image-block">
-                        <img src="./src/krutoy-minon-na-avu.jpg">
+                        <img src="/src/krutoy-minon-na-avu.jpg">
                     </div>
                     <div class="chat-info-block">
                         <div class="chat-title">
@@ -55,7 +55,7 @@
                 </div>
                 <div class="chats-list-chat">
                     <div class="preview-image-block">
-                        <img src="./src/default_avatar.png">
+                        <img src="/src/default_avatar.png">
                     </div>
                     <div class="chat-info-block">
                         <div class="chat-title">
@@ -68,20 +68,25 @@
                     <div class="chat-status">
                         R
                     </div>
+                </div> -->
+            </div>
+            <div class="menu-panel gradient1">
+                <div id="logout-button" class="menu-item">
+                    *
+                </div>
+                <div id="add-chat-button" class="menu-item">
+                    +
                 </div>
             </div>
-            <!-- <div class="menu-panel">
-                <div class="menu-item">Ic1</div>
-                <div class="menu-item">Ic2</div>
-                <div class="menu-item">Ic3</div>
-                <div class="menu-item">Ic4</div>
-            </div> -->
         </div>
 
         <div class="chat-block">
-            <div class="chat-block-header gradient2">
-                <div class="chat-block-header-avatar">
-                    <img src="./src/krutoy-minon-na-avu.jpg" class="chat-avatar">
+            <div class="unselected-chat-block">
+                <h3>No selected chat</h3>
+            </div>
+            <div class="chat-block-header gradient2" style="display: none;">
+                <!-- <div class="chat-block-header-avatar">
+                    <img src="/src/krutoy-minon-na-avu.jpg" class="chat-avatar">
                 </div>
                 <div class="chat-block-header-text-info">
                     <div class="chat-block-header-title">
@@ -93,10 +98,10 @@
                 </div>
                 <div class="chat-block-header-menu">
                     ⋮
-                </div>
+                </div> -->
             </div>
-            <div class="chat-block-content">
-                <div class="message system-message">Yesterday</div>
+            <div class="chat-block-content" style="display: none;">
+                <!-- <div class="message system-message">Yesterday</div>
                 <div class="message income-message">
                     <div class="message-content">Message from friend</div>
                     <div class="message-info">12:00</div>
@@ -117,10 +122,10 @@
                 <div class="message outcome-message">
                     <div class="message-content">Last message</div>
                     <div class="message-info">12:01</div>
-                </div>
+                </div> -->
             
             </div>
-            <div class="chat-block-input gradient2">
+            <div class="chat-block-input gradient2" style="display: none;">
                 <div class="attach-button-block">
                     <button type="button" class="attach-button">
                         <svg width="25px" height="25px" viewBox="0 0 28 28" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
@@ -151,7 +156,25 @@
                 </div>
             </div>
         </div>
-
+        
+        <div id="modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Create chat</h2>
+                    <button type="button" class="close-modal-button">&times;</button>
+                </div>
+                <div class="modal-form">
+                    <div class="modal-form-parameter">
+                        <label for="partner-username">Username of partner</label>
+                        <input type="text" id="partner-username" name="username" placeholder="Type..." required>
+                    </div>
+                    <p id="chat-creating-result"></p>
+                    <button type="button" id="create-chat-button" class="create-chat-button">Create chat</button>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <script type="module" src="/js/webpages/messenger.js"></script>
 </body>
 </html>

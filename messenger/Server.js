@@ -1,29 +1,62 @@
 const express = require('express');
-const app = express();
+const cookieParser = require('cookie-parser');
 const path = require('path')
+require('dotenv').config();
+
 const authRoutes = require('./GenRoutes/auth');
 const chatRoutes = require('./GenRoutes/chats');
+const messageRoutes = require('./GenRoutes/messages');
+const userRoutes = require('./GenRoutes/users');
+const messengerRoutes = require('./GenRoutes/messenger');
+const settingsRoutes = require('./GenRoutes/settings');
 
-app.use(express.json());
 
-app.use((req, res, next) => {
-    console.log(`Visited URL: ${req.originalUrl}`);
+const app = express();
+
+const connectDB = require('./db');
+
+
+// Initializing db
+connectDB();
+
+// "First" middlewares:
+// express.json() used for converting req.body to JSON by express framework
+app.use(
+	express.json({ limit : '1mb' })
+);
+// to work with cookies
+app.use(cookieParser())
+
+// Middleware for avoiding error JSON from client
+app.use((err, req, res, next) => {
+    if (err instanceof SyntaxError) {
+        return res.status(400).json({ message: 'Invalid JSON' });
+    }
     next();
 });
 
-// const requireAdmin = (req, res, next) => {
-//     const isAdmin = req.query.admin === 'true'; // Check if ?admin=true
-//     console.log(`Admin Query Param: ${req.query.admin}`); // Debugging log
-//     if (isAdmin) {
-//         next();
-//     } else {
-//         res.status(403).send('Nothing here');
-//     }
-// };
+// Logging middleware
+// TODO: modify
+app.use((req, res, next) => {
+  	console.log(`[${new Date()}] Visited URL: ${req.originalUrl}`);
+  	next();
+});
+
+// Setting static files path middleware
+app.use(
+    express.static(
+        path.join(__dirname, 'frontend')
+    )
+)
+
 
 // Routes
+app.use('/messages', messageRoutes);
 app.use('/auth', authRoutes); 
 app.use('/chats', chatRoutes); 
+app.use('/users', userRoutes)
+app.use('/messenger', messengerRoutes);
+app.use('/settings', settingsRoutes);
 
 const settingsRoutes = require('./GenRoutes/settings');
 app.use('/settings', settingsRoutes);
@@ -31,28 +64,28 @@ app.use('/settings', settingsRoutes);
 app.use(express.static(path.join(__dirname, 'frontend')))
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
-  });
+    res.redirect('/messenger');
+});
 
-  app.get('/login', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend', 'LogInPage.html'));
-  });
 
-  app.get('/signup', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend', 'SignupPage.html'));
-  });
-
-app.get('/settings', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend', 'settings.html'));
+// "Last" middlewares:
+// Not found middleware
+app.use((req, res, next) => {
+    const notFoundPath = path.join(__dirname, 'frontend', 'notFound.html');
+	res.sendFile(notFoundPath);
 });
 
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-    res.status(err.status || 500).json({ message: err.message || 'Internal Server Error' });
+	console.error(err.stack);
+    res.status(err.status || 500).json({
+        error: err.message || 'Internal Server Error',
+    });
 });
 
-const port = 6970;
+
+const port = process.env.SERVER_PORT;
 app.listen(port, () => {
     console.log(`http://localhost:${port}`);
 });

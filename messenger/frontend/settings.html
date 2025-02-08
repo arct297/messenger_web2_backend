@@ -1,38 +1,38 @@
-<form id="settings-form">
-    <label for="name">Name:</label>
-    <input type="text" id="name" name="name" placeholder="Enter your name" />
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messenger Settings</title>
+    <link rel="stylesheet" href="settings.css">
+</head>
+<body>
 
-    <label for="avatar">Avatar URL:</label>
-    <input type="text" id="avatar" name="avatar" placeholder="Enter avatar URL" />
+<div class="container">
+    <h1>Settings</h1>
+    
+    <div class="section">
+        <h2>Profile</h2>
+        <ul>
+            <li>Change Name</li>
+            <li>Upload Avatar</li>
+            <li>Update Password</li>
+        </ul>
+    </div>
 
-    <label for="password">Password:</label>
-    <input type="password" id="password" name="password" placeholder="Enter new password" />
+    <div class="section">
+        <h2>Preferences</h2>
+        <ul>
+            <li>Notifications</li>
+            <li>Theme</li>
+            <li>Privacy</li>
+        </ul>
+    </div>
 
-    <button type="submit">Save</button>
-</form>
+    <div class="section">
+        <button>Save Changes</button>
+    </div>
+</div>
 
-<script src="/js/scripts/requests/request.js"></script>
-<script>
-    document.getElementById('settings-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const name = document.getElementById('name').value;
-        const avatar = document.getElementById('avatar').value;
-        const password = document.getElementById('password').value;
-
-        const response = await fetch('/settings', {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            body: JSON.stringify({ name, avatar, password })
-        });
-
-        if (response.ok) {
-            alert('Settings updated successfully!');
-        } else {
-            alert('Failed to update settings.');
-        }
-    });
-</script>
+</body>
+</html>

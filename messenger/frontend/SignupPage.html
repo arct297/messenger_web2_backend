@@ -3,30 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="Loginstyles.css">
+    <link rel="stylesheet" href="/styles/Loginstyles.css">
     <title>Sign up</title>
 </head>
 <body>
-    <div class = "main">
+    <div class="main">
         <div class="text-above-form">
             <h1>Sign in to Hurricane!</h1>
             <p>Please sign in to your account by entering login and password below! </p>
         </div>
-    <div class="login-container">
-        <h1>Sign up</h1>
-        <form id="login-form">
-            <input type="text" placeholder="login" id="login" required>
-            <input type="password" placeholder="password" id="pass" required>
-            <input type="email" placeholder="email (optional)" id="email">
-            <div class="stay-signed-in">
-                <input type="checkbox" id="stay-signed-in">
-                <label for="stay-signed-in">Stay signed in</label>
-            </div>
-            <button type="submit">Sign up</button>
-        </form>
-        <p>Already have an account? <a href="LogInPage.html">Log in here</a></p>
+        <div class="login-container">
+            <h1>Sign up</h1>
+            <form id="signup-form">
+                <input type="text" placeholder="login" id="login" required>
+                <input type="password" placeholder="password" id="password" required>
+                <input type="email" placeholder="email (optional)" id="email">
+                <input type="text" placeholder="name" id="username" required>
+                <div class="stay-signed-in">
+                    <input type="checkbox" id="stay-signed-in">
+                    <label for="stay-signed-in">Stay signed in</label>
+                </div>
+                <button type="submit">Sign up</button>
+            </form>
+            <p>Already have an account? <a href="/auth/login/">Log in here</a></p>
+        </div>
     </div>
-    </div>
-    <script src="Login.js"></script>
+    
+    <script src="/js/webpages/signup.js"></script>
 </body>
 </html>
