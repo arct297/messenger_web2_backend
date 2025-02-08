@@ -1,32 +1,20 @@
 const nodemailer = require('nodemailer');
-const crypto = require('crypto');
 
-const sendVerificationEmail = async (userEmail) => {
-    const verificationCode = crypto.randomBytes(20).toString('hex');
-    const confirmationLink = `http://наш_сайт.ком/auth/confirm?email=${userEmail}&code=${verificationCode}`;
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'your_email@gmail.com', 
+        pass: 'your_email_password'   
+    }
+});
 
-    const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: 'your_email@gmail.com',
-            pass: 'your_password',
-        },
-    });
-
+exports.sendVerificationEmail = (email, verificationLink) => {
     const mailOptions = {
         from: 'your_email@gmail.com',
-        to: userEmail,
+        to: email,
         subject: 'Email Verification',
-        html: `<p>Click <a href="${confirmationLink}">here</a> to verify your email.</p>`,
+        html: `<p>Click <a href="${verificationLink}">here</a> to verify your email.</p>`
     };
 
-    try {
-        await transporter.sendMail(mailOptions);
-        return { success: true, verificationCode };
-    } catch (error) {
-        console.error('Email sending error:', error);
-        return { success: false, error };
-    }
+    return transporter.sendMail(mailOptions);
 };
-
-module.exports = sendVerificationEmail;

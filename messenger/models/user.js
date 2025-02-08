@@ -9,10 +9,8 @@ const UserSchema = new mongoose.Schema({
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
     avatar: { type: String, required: false, default: 'default' },
     timestamp: { type: Date, default: Date.now },
-
-    is_verified: { type: Boolean, default: false },               // Статус подтверждения почты
-    verification_code: { type: String, required: false },         // Код для подтверждения почты
-
+    isVerified: { type: Boolean, default: false },
+    verificationCode: { type: String },
 }, {
     collection: 'users',
     timestamps: true

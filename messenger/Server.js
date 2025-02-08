@@ -58,7 +58,8 @@ app.use('/users', userRoutes)
 app.use('/messenger', messengerRoutes);
 app.use('/settings', settingsRoutes);
 
-// Main path controller
+app.use(express.static(path.join(__dirname, 'frontend')))
+
 app.get('/', (req, res) => {
     res.redirect('/messenger');
 });
