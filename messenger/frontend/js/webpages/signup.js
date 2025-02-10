@@ -7,6 +7,15 @@ document.getElementById('signup-form').addEventListener('submit', async (event) 
     const username = document.getElementById('username').value;
     const staySignedIn = document.getElementById('stay-signed-in').checked;
 
+    const signupResultElement = document.getElementById('signup-result');
+    const errorMessageElement = document.getElementById('error-message'); // Element for displaying error messages
+
+    function displaySignupMessage(message, type = 'error') {
+        errorMessageElement.textContent = message;
+        errorMessageElement.style.display = 'block';
+        errorMessageElement.style.color = type === 'success' ? 'green' : 'red';
+    }
+
     try {
         const response = await fetch('/auth/signup', {
             method: 'POST',
@@ -19,13 +28,15 @@ document.getElementById('signup-form').addEventListener('submit', async (event) 
         const result = await response.json();
 
         if (response.ok) {
-            alert('Signup successful!');
-            window.location.href = '/auth/login';
+            displaySignupMessage('Signup successful!', 'success');
+            setTimeout(() => {
+                window.location.href = '/auth/login';
+            }, 1000);
         } else {
-            alert(`Error: ${result.message}`);
+            displaySignupMessage(`Error: ${result.message}`);
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('An error occurred. Please try again.');
+        displaySignupMessage('An error occurred. Please try again.');
     }
 });

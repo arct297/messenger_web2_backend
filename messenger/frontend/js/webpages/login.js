@@ -3,15 +3,15 @@ const resultElement = document.getElementById('result');
 const loginElement = document.getElementById('login');
 const passwordElement = document.getElementById('password');
 const staySignedInElement = document.getElementById('stay-signed-in');
+const errorMessageElement = document.getElementById('error-message'); // Element for displaying error messages
 
 function displayUnsuccessfullLogin(text) {
-    resultElement.textContent = text;
-    resultElement.style.display = 'block';
+    errorMessageElement.textContent = text;
+    errorMessageElement.style.display = 'block';
     loginElement.value = '';
     passwordElement.value = '';
     staySignedInElement.checked = false;
 }
-
 
 document.getElementById('login-form').addEventListener('submit', async (event) => {
     event.preventDefault(); // Prevent the default form submission
@@ -32,22 +32,21 @@ document.getElementById('login-form').addEventListener('submit', async (event) =
         console.log(responseJSON);
         console.log(responseJSON.status);
 
-        if (response.status == 200 && responseJSON.status == "success") {
-            window.location.href = "/messenger/"
-       
-        } else if (response.status == 400 && responseJSON.status == "error") {
+        if (response.status === 200 && responseJSON.status === "success") {
+            window.location.href = "/messenger/";
+
+        } else if (response.status === 400 && responseJSON.status === "error") {
             return displayUnsuccessfullLogin('All fields (login, password) are required!');
 
-        } else if (response.status == 401 && responseJSON.status == "warning") {
+        } else if (response.status === 401 && responseJSON.status === "warning") {
             return displayUnsuccessfullLogin('Wrong login or password. Try again!');
 
         } else {
             return displayUnsuccessfullLogin('Some error on server. Please, try later!');
         }
-        
+
     } catch (error) {
         console.error('Error during login:', error);
-        alert('An error occurred. Please try again.');
+        displayUnsuccessfullLogin('An error occurred. Please try again.');
     }
 });
-
