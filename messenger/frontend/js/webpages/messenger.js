@@ -73,15 +73,22 @@ createChatButton.addEventListener('click', async () => {
         });
 
         const responseJSON = await response.json();
+        console.log(response.status, responseJSON);
         
         createChatResultElement.className = "";
         createChatResultElement.style.display = "block";
         if (response.status === 201) {
             createChatResultElement.textContent = "Chat successfully created!";
             createChatResultElement.className = "chat-creating-result-success";
+        
         } else if (response.status === 404) {
             createChatResultElement.textContent = "User with such username is not found!";
             createChatResultElement.className = "chat-creating-result-warning";
+        
+        } else if (response.status === 400 && responseJSON.status === "warning") {
+            createChatResultElement.textContent = "Impossible to create chat: " + responseJSON.message;
+            createChatResultElement.className = "chat-creating-result-warning";
+        
         } else {
             createChatResultElement.textContent = "Error... Try again later!";
             createChatResultElement.className = "chat-creating-result-error";
@@ -264,14 +271,13 @@ function renderChatMessages(messages) {
     console.log(messages);
     const messagesContainer = document.querySelector(".chat-block-content");
     try {
+        messagesContainer.style.visibility = "visible";
         messagesContainer.innerHTML = "";
     } catch {}
 
     messages.forEach(message => {
         const messageElement = document.createElement("div");
 
-        console.log("message.sender");
-        console.log(message.sender);
         if (message.type === "system") {
             messageElement.classList.add("message", "system-message");
         } else if (message.sender._id === selfUserId) {

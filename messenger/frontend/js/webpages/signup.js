@@ -8,7 +8,7 @@ document.getElementById('signup-form').addEventListener('submit', async (event) 
     const staySignedIn = document.getElementById('stay-signed-in').checked;
 
     const signupResultElement = document.getElementById('signup-result');
-    const errorMessageElement = document.getElementById('error-message'); // Element for displaying error messages
+    const errorMessageElement = document.getElementById('error-message'); 
 
     function displaySignupMessage(message, type = 'error') {
         errorMessageElement.textContent = message;
@@ -27,11 +27,8 @@ document.getElementById('signup-form').addEventListener('submit', async (event) 
 
         const result = await response.json();
 
-        if (response.ok) {
-            displaySignupMessage('Signup successful!', 'success');
-            setTimeout(() => {
-                window.location.href = '/auth/login';
-            }, 1000);
+        if (response.status == 201) {
+            displaySignupMessage('Signup successful! We have sent message on your email, please confirm it!', 'success');
         } else {
             displaySignupMessage(`Error: ${result.message}`);
         }
