@@ -83,6 +83,6 @@ app.use((err, req, res, next) => {
 
 
 const port = process.env.SERVER_PORT;
-app.listen(port, () => {
-    console.log(`http://localhost:${port}`);
+app.listen(port, '0.0.0.0', () => {
+    console.log(`Server running on http://0.0.0.0:${port}`);
 });

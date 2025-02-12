@@ -31,7 +31,7 @@ exports.signUpUser = async (req, res) => {
 
         const verificationLink = `http://localhost:6970/auth/confirm?email=${email}&code=${verificationCode}`;
         console.log(verificationLink);
-        // await emailService.sendVerificationEmail(email, verificationLink);
+        await emailService.sendVerificationEmail(email, verificationLink);
 
         res.status(201).json({ message: 'Signup successful. Check your email to verify.', code: 201 });
 
