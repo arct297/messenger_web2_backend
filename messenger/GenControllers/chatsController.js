@@ -44,7 +44,6 @@ exports.getChatList = async (req, res) => {
             }
             return chat;
         });
-        console.log(chats)
 
         res.status(200).json({
             status: "success",
@@ -80,28 +79,46 @@ exports.createChat = async (req, res) => {
 
         if (!participants || !Array.isArray(participants) || participants.length === 0) {
             return res.status(400).json({ 
-                status: "error", 
+                status: "warning", 
                 message: "Participants are required"
             });
         }
         
-        participants.push(req.user.id);
-        const participantIds = participants
-            .filter(id => mongoose.Types.ObjectId.isValid(id)) 
-            .map(id => new mongoose.Types.ObjectId(id));
-
-        var existingUsers = await User.find({ _id: { $in: participantIds } });
-
-        if (existingUsers.length !== participantIds.length) {
-            return res.status(400).json({ 
+        const creatorUser = await User.findById(req.user.id);
+        if (!creatorUser) {
+            return res.status(500).json({ 
                 status: "error", 
+                message: "Some error happened. Please, try to relogin!"
+            });
+        }
+        
+        participants.push(creatorUser.username);
+
+        const existingUsers = await User.find({ username: { $in: participants } });
+        if (existingUsers.length !== participants.length) {
+            return res.status(400).json({ 
+                status: "warning", 
                 message: "One or more participants do not exist"
             });
         }
 
+        let participantsIds = existingUsers.map(user => user._id);
+
         if (chatType === "private") {
             title = "default";
             avatar = "default";
+
+            const existingChat = await Chat.findOne({ 
+                chatType: "private",
+                participants: { $all: participantsIds, $size: participantsIds.length }
+            });
+
+            if (existingChat) {
+                return res.status(400).json({
+                    status: "warning",
+                    message: "Private chat with these participants already exists"
+                });
+            }
         } else if (chatType !== "group") {
             return res.status(400).json({ 
                 status: "error", 
@@ -109,14 +126,14 @@ exports.createChat = async (req, res) => {
             });
         }
 
-        if (participantIds.length === 0) {
+        if (participantsIds.length === 0) {
             return res.status(400).json({
                 status: "error",
                 message: "No valid participants found"
             });
-        }   
+        }
 
-        const newChat = new Chat({ title, participants: participantIds, chatType, avatar });
+        const newChat = new Chat({ title, participants: participantsIds, chatType, avatar });
         const savedChat = await newChat.save();
 
         return res.status(201).json({ 

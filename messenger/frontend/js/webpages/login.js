@@ -41,7 +41,11 @@ document.getElementById('login-form').addEventListener('submit', async (event) =
         } else if (response.status === 401 && responseJSON.status === "warning") {
             return displayUnsuccessfullLogin('Wrong login or password. Try again!');
 
+        } else if (response.status === 403 && responseJSON.status === "warning") {
+            return displayUnsuccessfullLogin(responseJSON.message);
+
         } else {
+            console.log(response.status, responseJSON.status)
             return displayUnsuccessfullLogin('Some error on server. Please, try later!');
         }
 

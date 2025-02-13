@@ -29,7 +29,8 @@ exports.signUpUser = async (req, res) => {
         const newUser = new User({ login, password: hashedPassword, email, username, staySignedIn, verificationCode });
         await newUser.save();
 
-        const verificationLink = `http://yourwebsite.com/auth/confirm?email=${email}&code=${verificationCode}`;
+        const verificationLink = `http://localhost:6970/auth/confirm?email=${email}&code=${verificationCode}`;
+        console.log(verificationLink);
         await emailService.sendVerificationEmail(email, verificationLink);
 
         res.status(201).json({ message: 'Signup successful. Check your email to verify.', code: 201 });
@@ -63,31 +64,31 @@ exports.loginUser = async (req, res) => {
     const { login, password } = req.body;
 
     if (!login || !password) {
-        return res.status(400).json({ message: 'All fields are required', code: 400 });
+        return res.status(400).json({ message: 'All fields are required', status : "warning", code: 400 });
     }
 
     try {
         const existingUser = await User.findOne({ login });
         if (!existingUser) {
-            return res.status(401).json({ message: 'Wrong login or password', code: 401 });
+            return res.status(401).json({ message: 'Wrong login or password', status : "warning", code: 401 });
         }
 
         const isPasswordValid = await bcrypt.compare(password, existingUser.password);
         if (!isPasswordValid) {
-            return res.status(401).json({ message: 'Wrong login or password', code: 401 });
+            return res.status(401).json({ message: 'Wrong login or password', status : "warning", code: 401 });
         }
 
         if (!existingUser.isVerified) {
-            return res.status(403).json({ message: 'Please verify your email before logging in.', code: 403 });
+            return res.status(403).json({ message: `Please verify your email ${existingUser.email} before logging in.`, status : "warning", code: 403 });
         }
-
-        await Session.deleteMany({ user: existingUser._id });
-
+        
         const payload = { id: existingUser._id, role: existingUser.role };
         const accessToken = tokenService.generateAccessToken(payload);
         const refreshToken = tokenService.generateRefreshToken(payload);
+        
+        const hashedRefreshToken = await bcrypt.hash(refreshToken, 15);
 
-        const session = new Session({ user: existingUser._id, accessToken, refreshToken });
+        const session = new Session({ user: existingUser._id, refreshToken : hashedRefreshToken });        
         await session.save();
 
         res.cookie('accessToken', accessToken, {
@@ -105,8 +106,23 @@ exports.loginUser = async (req, res) => {
             sameSite: 'Strict',
         });
 
-        return res.status(200).json({ message: 'User logged in successfully', code: 200 });
+        return res.status(200).json({ message: 'User logged in successfully', status : "success", code: 200 });
     } catch {
-        res.status(500).json({ message: 'Internal server error', code: 500 });
+        res.status(500).json({ message: 'Internal server error', status : "error", code: 500 });
+    }
+};
+
+
+exports.logOut = async (req, res) => {
+    try {
+        await Session.deleteMany({ user: req.user.id });
+
+        res.clearCookie('accessToken', { httpOnly: true, sameSite: 'Strict' });
+        res.clearCookie('refreshToken', { httpOnly: true, sameSite: 'Strict' });
+
+        res.redirect("/auth/login");
+    } catch (error) {
+        console.error("Error logging out:", error);
+        res.status(500).json({ message: "Logout failed" });
     }
 };

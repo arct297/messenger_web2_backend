@@ -4,6 +4,8 @@ const { loginUser, signUpUser, drawSignUpPage, drawLogInPage, logOut, confirmEma
 const checkLoginData = require('../middlewares/login');
 const checkSignUpData = require('../middlewares/signup');
 
+const authenticate = require('../middlewares/authenticate')
+
 router.get('/login', drawLogInPage);
 router.post('/login', checkLoginData, loginUser);
 
@@ -12,6 +14,6 @@ router.post('/signup', checkSignUpData, signUpUser);
 
 router.get('/confirm', confirmEmail);
 
-router.post('/logout', logOut);
+router.post('/logout', authenticate, logOut);
 
 module.exports = router;
