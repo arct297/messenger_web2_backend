@@ -1,16 +1,17 @@
+require('dotenv').config();
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: 'your_email@gmail.com', 
-        pass: 'your_email_password'   
+        user: process.env.EMAIL_USER, 
+        pass: process.env.EMAIL_PASS
     }
 });
 
 exports.sendVerificationEmail = (email, verificationLink) => {
     const mailOptions = {
-        from: 'your_email@gmail.com',
+        from: 'web589972@gmail.com',
         to: email,
         subject: 'Email Verification',
         html: `<p>Click <a href="${verificationLink}">here</a> to verify your email.</p>`
