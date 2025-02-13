@@ -3,6 +3,25 @@ const mongoose = require('mongoose');
 const Message = require('../models/message');
 const Chat = require('../models/chat');
 
+exports.searchMessages = async (req, res) => {
+    try {
+        const { chatId, query } = req.query;
+
+        if (!chatId || !query) {
+            return res.status(400).json({ message: 'chatId and query are required', code: 400 });
+        }
+
+        const messages = await Message.find({
+            chat: chatId,
+            content: { $regex: query, $options: 'i' } 
+        }).sort({ timestamp: -1 }); 
+
+        return res.status(200).json({ messages });
+    } catch (error) {
+        console.error('Error searching messages:', error);
+        return res.status(500).json({ message: 'Internal server error', code: 500 });
+    }
+};
 
 exports.createMessage = async (req, res) => {
     try {
