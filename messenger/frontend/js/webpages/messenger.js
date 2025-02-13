@@ -8,14 +8,15 @@ const createChatButton = document.getElementById("create-chat-button");
 const partnerUserNameElement = document.getElementById("partner-username");
 
 const logOutButtonElement = document.getElementById("logout-button");
+const settingsButtonElement = document.getElementById("settings-button");
 
 const sendMessageButton = document.querySelector(".send-button");
 const messageInputElement = document.querySelector(".input-block input");
-console.log(messageInputElement);
 
 var selfUserId = null;
 var selectedChat = null;
 
+let lastMessageTimestamp = null;
 
 function getCookie(name) {
     const cookies = document.cookie.split('; ');
@@ -139,6 +140,16 @@ logOutButtonElement.addEventListener('click', async () => {
 });
 
 
+settingsButtonElement.addEventListener('click', async () => {
+    try {
+
+        window.location.href = "/settings"
+        
+    } catch (error) {
+        console.log(error)
+    }
+});
+
 function createChatElement(chat) {
     const chatElement = document.createElement("div");
     chatElement.classList.add("chats-list-chat");
@@ -196,6 +207,11 @@ async function changeSelectedChat(newSelectedChat, chatData) {
             const responseJSON = await response.json();
             if (response.status === 200 && responseJSON.status === "success") {
                 chatData.messages = responseJSON.messagesList;
+
+                // Устанавливаем lastMessageTimestamp сразу после загрузки
+                if (chatData.messages.length > 0) {
+                    lastMessageTimestamp = chatData.messages[chatData.messages.length - 1].timestamp;
+                }
             } else {
                 console.log(response.status);
                 window.location.href = "/messenger"
@@ -204,6 +220,7 @@ async function changeSelectedChat(newSelectedChat, chatData) {
         } catch (error) {
             console.log(error);
         }
+
         renderChatMessages(chatData.messages);
         
     } catch (error) {
@@ -267,20 +284,42 @@ function renderChatHeader(chatData) {
 }
 
 
-function renderChatMessages(messages) {
-    console.log(messages);
+function renderChatMessages(messages, append = false) {
+    console.log("Messages to render:", messages);
+    
     const messagesContainer = document.querySelector(".chat-block-content");
-    try {
-        messagesContainer.style.visibility = "visible";
+    console.log("Messages container:", messagesContainer);
+
+    if (!messagesContainer) {
+        console.error("Error: Messages container not found!");
+        return;
+    }
+
+    messagesContainer.style.visibility = "visible";
+
+    if (!append) {
         messagesContainer.innerHTML = "";
-    } catch {}
+    }
+
+    const existingMessageIds = new Set(
+        [...messagesContainer.children].map(msg => msg.dataset.messageId)
+    );
 
     messages.forEach(message => {
-        const messageElement = document.createElement("div");
+        if (existingMessageIds.has(message._id)) {
+            console.log("Skipping duplicate message:", message);
+            return; // Пропускаем дубликат
+        }
 
-        if (message.type === "system") {
-            messageElement.classList.add("message", "system-message");
-        } else if (message.sender._id === selfUserId) {
+        console.log("Rendering message:", message);
+
+        const messageElement = document.createElement("div");
+        messageElement.dataset.messageId = message._id; // Устанавливаем ID для отслеживания
+
+        const senderId = message.sender?._id || message.sender;
+        console.log("Processed sender ID:", senderId);
+
+        if (senderId === selfUserId) {
             messageElement.classList.add("message", "outcome-message");
         } else {
             messageElement.classList.add("message", "income-message");
@@ -292,15 +331,19 @@ function renderChatMessages(messages) {
 
         const infoElement = document.createElement("div");
         infoElement.classList.add("message-info");
-        infoElement.textContent = message.timestamp.split("T")[1].split(".")[0];
+        infoElement.textContent = new Date(message.timestamp).toLocaleTimeString();
 
         messageElement.appendChild(contentElement);
         messageElement.appendChild(infoElement);
 
         messagesContainer.appendChild(messageElement);
     });
+
     messagesContainer.style.display = "flex";
 }
+
+
+
 
 
 
@@ -344,49 +387,52 @@ sendMessageButton.addEventListener("click", async () => {
     try {
         const response = await fetch('/messages/', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(
-                { 
-                    content : messageText, 
-                    chatId : chatId, 
-                }
-            )
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: messageText, chatId })
         });
 
         const responseJSON = await response.json();
         if (response.status === 201 && responseJSON.status === "success") {
-            
+            const newMessage = responseJSON.savedMessage;
+            renderChatMessages([newMessage], true);
+            lastMessageTimestamp = newMessage.timestamp;
+            console.log(lastMessageTimestamp);
         } else {
-            console.log(`Message sending error: <${response.status}> ${responseJSON}`);
-            return;
-        }
-        
-    } catch (error) {
-        console.log(error)
-    }
-
-    var messages = [];
-    try {
-        const response = await fetch(`/messages/?chatId=${chatId}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-        });
-        const responseJSON = await response.json();
-        if (response.status === 200 && responseJSON.status === "success") {
-            messages = responseJSON.messagesList;
-        } else {
-            console.log(response.status);
-            window.location.href = "/messenger"
-            return;
+            console.log(`Message sending error: <${response.status}>`, responseJSON);
         }
     } catch (error) {
         console.log(error);
     }
-    console.log(`messages ${messages}`)
-    renderChatMessages(messages);
+
     messageInputElement.value = "";
 });
+
+
+
+
+async function pollMessages() {
+    if (!selectedChat) return;
+    const chatId = selectedChat.dataset.chatId;
+
+    try {
+        const url = `/messages/?chatId=${chatId}` + (lastMessageTimestamp ? `&lastMessageTimestamp=${lastMessageTimestamp}` : "");
+        const response = await fetch(url, { method: 'GET' });
+        const responseJSON = await response.json();
+
+        if (response.status === 200 && responseJSON.status === "success") {
+            if (responseJSON.messagesList.length > 0) {
+                renderChatMessages(responseJSON.messagesList, true);
+
+                // Обновляем timestamp корректно
+                lastMessageTimestamp = new Date(responseJSON.messagesList[responseJSON.messagesList.length - 1].timestamp).toISOString();
+            }
+        } else {
+            console.log(`Polling error: ${response.status}`, responseJSON);
+        }
+    } catch (error) {
+        console.error("Error polling messages:", error);
+    }
+}
+
+setInterval(pollMessages, 3000);
+

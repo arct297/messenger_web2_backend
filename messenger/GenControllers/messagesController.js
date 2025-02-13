@@ -9,9 +9,6 @@ exports.createMessage = async (req, res) => {
         const { content, chatId } = req.body;
         const sender = req.user.id;
 
-        console.log(content);
-        console.log(chatId);
-
         if (!content || !chatId) {
             return res.status(400).json({ error: 'All fields are required' });
         }
@@ -46,7 +43,7 @@ exports.createMessage = async (req, res) => {
 
 exports.getMessages = async (req, res) => {
     try {
-        const { chatId } = req.query;
+        const { chatId, lastMessageTimestamp } = req.query;
 
         if (!chatId) {
             return res.status(400).json({ error: 'chatId is required' });
@@ -65,18 +62,22 @@ exports.getMessages = async (req, res) => {
             return res.status(403).json({ error: 'You are not a participant of this chat' });
         }
 
-        const messages = await Message.find({ chat: chatId })
+        const query = { chat: chatId };
+        if (lastMessageTimestamp) {
+            query.timestamp = { $gt: new Date(lastMessageTimestamp) }; // Фильтруем новые сообщения
+        }
+
+        const messages = await Message.find(query)
             .populate('sender', 'name') 
             .sort({ timestamp: 1 });
 
         res.status(200).json({
-            status : "success", 
-            messagesList : messages,
-        }
-        );
-        console.log(messages)
+            status: "success",
+            messagesList: messages,
+        });
     } catch (error) {
         console.error('Error retrieving messages:', error);
         res.status(500).json({ error: 'Failed to retrieve messages' });
     }
 };
+
