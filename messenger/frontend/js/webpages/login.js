@@ -3,7 +3,7 @@ const resultElement = document.getElementById('result');
 const loginElement = document.getElementById('login');
 const passwordElement = document.getElementById('password');
 const staySignedInElement = document.getElementById('stay-signed-in');
-const errorMessageElement = document.getElementById('error-message'); // Element for displaying error messages
+const errorMessageElement = document.getElementById('error-message'); 
 
 function displayUnsuccessfullLogin(text) {
     errorMessageElement.textContent = text;
@@ -14,7 +14,7 @@ function displayUnsuccessfullLogin(text) {
 }
 
 document.getElementById('login-form').addEventListener('submit', async (event) => {
-    event.preventDefault(); // Prevent the default form submission
+    event.preventDefault(); 
 
     const login = loginElement.value;
     const password = passwordElement.value;

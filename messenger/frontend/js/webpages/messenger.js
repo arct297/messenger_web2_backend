@@ -17,6 +17,7 @@ var selfUserId = null;
 var selectedChat = null;
 
 let lastMessageTimestamp = null;
+let lastChatTimestamp = null;
 
 function getCookie(name) {
     const cookies = document.cookie.split('; ');
@@ -116,26 +117,15 @@ logOutButtonElement.addEventListener('click', async () => {
                 }
             )
         });
-
-        // const responseJSON = await response.json();
         
         if (response.status === 200) {
             window.location.href = "/auth/login"
         } else {
             console.log("error");
         }
-        // } else if (response.status === 404) {
-        //     createChatResultElement.textContent = "User with such username is not found!";
-        //     createChatResultElement.className = "chat-creating-result-warning";
-        // } else {
-        //     createChatResultElement.textContent = "Error... Try again later!";
-        //     createChatResultElement.className = "chat-creating-result-error";
-        // }
         
     } catch (error) {
         console.log(error)
-        // createChatResultElement.textContent = "Error... Try again later!";
-        // createChatResultElement.className = "chat-creating-result-error";
     }
 });
 
@@ -208,7 +198,6 @@ async function changeSelectedChat(newSelectedChat, chatData) {
             if (response.status === 200 && responseJSON.status === "success") {
                 chatData.messages = responseJSON.messagesList;
 
-                // Устанавливаем lastMessageTimestamp сразу после загрузки
                 if (chatData.messages.length > 0) {
                     lastMessageTimestamp = chatData.messages[chatData.messages.length - 1].timestamp;
                 }
@@ -308,13 +297,13 @@ function renderChatMessages(messages, append = false) {
     messages.forEach(message => {
         if (existingMessageIds.has(message._id)) {
             console.log("Skipping duplicate message:", message);
-            return; // Пропускаем дубликат
+            return; 
         }
 
         console.log("Rendering message:", message);
 
         const messageElement = document.createElement("div");
-        messageElement.dataset.messageId = message._id; // Устанавливаем ID для отслеживания
+        messageElement.dataset.messageId = message._id;
 
         const senderId = message.sender?._id || message.sender;
         console.log("Processed sender ID:", senderId);
@@ -423,7 +412,6 @@ async function pollMessages() {
             if (responseJSON.messagesList.length > 0) {
                 renderChatMessages(responseJSON.messagesList, true);
 
-                // Обновляем timestamp корректно
                 lastMessageTimestamp = new Date(responseJSON.messagesList[responseJSON.messagesList.length - 1].timestamp).toISOString();
             }
         } else {
@@ -436,3 +424,76 @@ async function pollMessages() {
 
 setInterval(pollMessages, 3000);
 
+
+async function pollChats() {
+    try {
+        const url = `/chats/` + (lastChatTimestamp ? `?lastChatTimestamp=${lastChatTimestamp}` : "");
+        console.log("Polling new chats from:", url);
+
+        const response = await fetch(url, { method: 'GET' });
+        const responseJSON = await response.json();
+
+        if (response.status === 200 && responseJSON.status === "success") {
+            console.log("Polled chats:", responseJSON.chats);
+
+            if (responseJSON.chats.length > 0) {
+                renderChats(responseJSON.chats, true);
+
+                lastChatTimestamp = new Date(responseJSON.chats[responseJSON.chats.length - 1].createdAt).toISOString();
+            }
+        } else {
+            console.log(`Polling error: ${response.status}`, responseJSON);
+        }
+    } catch (error) {
+        console.error("Error polling chats:", error);
+    }
+}
+
+
+function renderChats(chats, append = false) {
+    console.log("Chats to render:", chats);
+
+    const chatContainer = document.querySelector(".chats-list");
+    if (!append) {
+        chatContainer.innerHTML = "";
+    }
+
+    const existingChatIds = new Set(
+        [...chatContainer.children].map(chat => chat.dataset.chatId)
+    );
+
+    chats.forEach(chat => {
+        if (existingChatIds.has(chat._id)) {
+            console.log("Skipping duplicate chat:", chat);
+            return;
+        }
+
+        const chatElement = createChatElement(chat);
+        chatElement.addEventListener("click", () => changeSelectedChat(chatElement, chat));
+        chatContainer.appendChild(chatElement);
+    });
+}
+
+
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const response = await fetch('/chats/', { method: 'GET' });
+        const responseJSON = await response.json();
+
+        if (response.status === 200 && responseJSON.status === "success") {
+            console.log("Initial chats:", responseJSON.chats);
+            renderChats(responseJSON.chats);
+
+            if (responseJSON.chats.length > 0) {
+                lastChatTimestamp = new Date(responseJSON.chats[responseJSON.chats.length - 1].createdAt).toISOString();
+            }
+        } else {
+            console.log(`Chats loading error: <${response.status}>`, responseJSON);
+        }
+    } catch (error) {
+        console.log(error);
+    }
+});
+
+
+setInterval(pollChats, 3000);
