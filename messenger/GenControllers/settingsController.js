@@ -1,7 +1,9 @@
+const path = require('path');
 const User = require('../models/user');
 
 const drawSettingsPage = (req, res) => {
-    res.send('Settings Page Loaded');
+    const pagePath = path.join(__dirname, '..', 'frontend', 'settings.html');
+    res.sendFile(pagePath);
 };
 
 const updateUserSettings = async (req, res) => {
