@@ -29,7 +29,7 @@ exports.signUpUser = async (req, res) => {
         const newUser = new User({ login, password: hashedPassword, email, username, staySignedIn, verificationCode });
         await newUser.save();
 
-        const verificationLink = `http://localhost:6970/auth/confirm?email=${email}&code=${verificationCode}`;
+        const verificationLink = `https://5fb3-2a0d-b201-43-db51-9ce9-d75-c853-7c3c.ngrok-free.app/auth/confirm?email=${email}&code=${verificationCode}`;
         console.log(verificationLink);
         await emailService.sendVerificationEmail(email, verificationLink);
 
