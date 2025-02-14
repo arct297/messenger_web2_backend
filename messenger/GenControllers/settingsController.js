@@ -1,10 +1,12 @@
-const express = require('express');
-const router = express.Router();
+const path = require('path');
+
+
 const authenticate = require('../middlewares/authenticate');
+
 const User = require('../models/user');
 
 // Get user settings
-router.get('/', authenticate, async (req, res) => {
+exports.getSettings =  async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
         res.json({
@@ -16,10 +18,10 @@ router.get('/', authenticate, async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: 'Server error' });
     }
-});
+}
 
 // Update user settings
-router.put('/', authenticate, async (req, res) => {
+exports.updateSettings = async (req, res) => {
     try {
         const { username, email, password, theme, notifications } = req.body;
         const user = await User.findById(req.user.id);
@@ -35,6 +37,11 @@ router.put('/', authenticate, async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: 'Error updating settings' });
     }
-});
+}
 
-module.exports = router;
+exports.drawSettingsPage = (req, res) => {
+    console.log("received");
+    const pagePath = path.join(__dirname, '..', 'frontend', 'settings.html');
+    console.log(pagePath);
+    res.sendFile(pagePath);
+};
