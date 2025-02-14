@@ -1,63 +1,104 @@
 body {
-    font-family: Arial, sans-serif;
     margin: 0;
-    padding: 0;
-    background-color: #f4f4f4;
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #f5f5dc, #f3ebfe);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: #5e3e8b;
 }
 
-.container {
-    max-width: 800px;
-    margin: 50px auto;
-    background-color: #fff;
-    padding: 20px;
+.settings-container {
+    background: #ffffff;
+    padding: 2rem;
     border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-h1 {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     text-align: center;
-    color: #333;
+    width: 350px;
 }
 
-.section {
-    margin-bottom: 30px;
+.profile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
 }
 
-.section h2 {
-    font-size: 20px;
-    color: #444;
-    margin-bottom: 10px;
+.profile img {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    border: 3px solid #a682d6;
+    cursor: pointer;
 }
 
-.section ul {
+.profile h2 {
+    margin: 10px 0 5px;
+}
+
+.profile input {
+    border: 1px solid #a682d6;
+    padding: 5px;
+    border-radius: 5px;
+    text-align: center;
+    margin-top: 5px;
+}
+
+.settings-list {
     list-style: none;
     padding: 0;
 }
 
-.section ul li {
-    margin: 10px 0;
-    padding: 10px;
-    background-color: #f9f9f9;
-    border-radius: 5px;
+.settings-list li {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    border-bottom: 1px solid #d8c9f0;
     cursor: pointer;
-    transition: background-color 0.3s;
+    font-size: 1rem;
 }
 
-.section ul li:hover {
-    background-color: #e0e0e0;
+.settings-list li:hover {
+    background-color: #f3ebfe;
+    border-radius: 5px;
+}
+
+/* Модальное окно */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
 }
 
 button {
-    padding: 10px 15px;
-    background-color: black;
+    margin-top: 20px;
+    padding: 12px;
+    background-color: #a682d6;
     color: white;
     border: none;
     border-radius: 5px;
+    font-size: 1rem;
     cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s;
+    width: 100%;
 }
 
-button:hover {
-    background-color: #0056b3;
+/* Темная тема */
+.dark-mode {
+    background: #1a1a2e;
+    color: white;
 }

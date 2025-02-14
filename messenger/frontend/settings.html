@@ -4,75 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Settings</title>
-    <link rel="stylesheet" href="/styles/settings.css">
+    <link rel="stylesheet" href="./styles/settings.css">
+    <script defer src="../GenRoutes/settings.js"></script>
 </head>
 <body>
-    <h1>Settings</h1>
-    <div id="settings-container">
-        <form id="settings-form">
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username">
-            
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email">
-            
-            <label for="password">New Password:</label>
-            <input type="password" id="password" name="password">
-            
-            <button type="submit">Save Changes</button>
-        </form>
-        <p id="status-message"></p>
+    <div class="settings-container">
+        <div class="profile">
+            <input type="file" id="avatarUpload" style="display: none">
+            <img src="./src/default_avatar.png" id="avatar" alt="Avatar">
+            <h2 id="username">User Name</h2>
+            <input type="text" id="usernameInput" placeholder="Enter new username">
+            <button id="saveChanges">Save Changes</button>
+        </div>
+
+        <ul class="settings-list">
+            <li id="updateProfile"><i class="fas fa-user"></i> Update Profile</li>
+            <li id="notifications"><i class="fas fa-bell"></i> Notifications</li>
+            <li id="theme"><i class="fas fa-palette"></i> Theme</li>
+            <li id="privacy"><i class="fas fa-lock"></i> Privacy & Security</li>
+        </ul>
     </div>
-    
-    <script>
-        document.addEventListener("DOMContentLoaded", async () => {
-            const form = document.getElementById("settings-form");
-            const statusMessage = document.getElementById("status-message");
-            
-            // Load current user settings
-            try {
-                const response = await fetch("/api/settings", { credentials: "include" });
-                const data = await response.json();
-                
-                if (response.ok) {
-                    document.getElementById("username").value = data.username;
-                    document.getElementById("email").value = data.email;
-                } else {
-                    statusMessage.textContent = "Failed to load user settings.";
-                }
-            } catch (error) {
-                console.error("Error fetching user settings:", error);
-                statusMessage.textContent = "An error occurred while loading settings.";
-            }
-            
-            // Handle form submission
-            form.addEventListener("submit", async (event) => {
-                event.preventDefault();
-                const updatedData = {
-                    username: document.getElementById("username").value,
-                    email: document.getElementById("email").value,
-                    password: document.getElementById("password").value
-                };
-                
-                try {
-                    const response = await fetch("/api/settings", {
-                        method: "PUT",
-                        headers: { "Content-Type": "application/json" },
-                        credentials: "include",
-                        body: JSON.stringify(updatedData)
-                    });
-                    
-                    if (response.ok) {
-                        statusMessage.textContent = "Settings updated successfully!";
-                    } else {
-                        statusMessage.textContent = "Failed to update settings.";
-                    }
-                } catch (error) {
-                    console.error("Error updating settings:", error);
-                    statusMessage.textContent = "An error occurred while updating settings.";
-                }
-            });
-        });
-    </script>
+
+    <!-- Modal for profile update confirmation -->
+    <div id="updateModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <p>Are you sure you want to update your profile?</p>
+            <button id="confirmUpdate">Yes</button>
+            <button id="cancelUpdate">No</button>
+        </div>
+    </div>
 </body>
 </html>

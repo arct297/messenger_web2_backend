@@ -1,56 +1,91 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const avatar = document.getElementById("avatar");
-    const avatarUpload = document.getElementById("avatarUpload");
-    const usernameInput = document.getElementById("usernameInput");
-    const saveChanges = document.getElementById("saveChanges");
+    console.log("✅ DOM fully loaded and script is running!");
 
-    // Загрузка аватара
-    avatar.addEventListener("click", () => avatarUpload.click());
+    // Getting all necessary elements
+    const elements = {
+        avatar: document.getElementById("avatar"),
+        avatarUpload: document.getElementById("avatarUpload"),
+        usernameInput: document.getElementById("usernameInput"),
+        saveChanges: document.getElementById("saveChanges"),
+        updateProfile: document.getElementById("updateProfile"),
+        updateModal: document.getElementById("updateModal"),
+        confirmUpdate: document.getElementById("confirmUpdate"),
+        cancelUpdate: document.getElementById("cancelUpdate"),
+    };
 
-    avatarUpload.addEventListener("change", async (event) => {
+    // Debugging: Log missing elements
+    let missingElements = Object.keys(elements).filter(key => !elements[key]);
+    if (missingElements.length > 0) {
+        console.error(`❌ Error: Missing elements: ${missingElements.join(", ")}`);
+        console.log("📌 Check your HTML: Are these IDs correct?");
+        console.log("🔎 Open DevTools (F12) → Console and check with document.getElementById('missing_id')");
+        return;
+    }
+
+    console.log("✅ All elements found!");
+
+    // ✅ Avatar Upload Handling
+    elements.avatar.addEventListener("click", () => elements.avatarUpload.click());
+
+    elements.avatarUpload.addEventListener("change", async (event) => {
         const file = event.target.files[0];
         if (file) {
             const formData = new FormData();
             formData.append("avatar", file);
 
             try {
-                const response = await fetch("/api/settings/avatar", {
+                const response = await fetch("http://localhost:3000/api/settings/avatar", {
                     method: "POST",
                     body: formData,
                 });
 
                 const data = await response.json();
                 if (response.ok) {
-                    avatar.src = data.avatarUrl;
+                    elements.avatar.src = data.avatarUrl;
+                    alert("✅ Avatar uploaded successfully!");
                 } else {
-                    alert("Failed to upload avatar");
+                    alert("❌ Failed to upload avatar: " + data.message);
                 }
             } catch (error) {
-                console.error("Error uploading avatar:", error);
+                console.error("❌ Error uploading avatar:", error);
             }
         }
     });
 
-    // Сохранение имени
-    saveChanges.addEventListener("click", async () => {
-        const newUsername = usernameInput.value;
+    // ✅ Open update confirmation modal
+    elements.updateProfile.addEventListener("click", () => {
+        elements.updateModal.style.display = "block";
+    });
 
-        if (newUsername.trim() === "") return alert("Username cannot be empty!");
+    // ✅ Confirm profile update
+    elements.confirmUpdate.addEventListener("click", async () => {
+        const newUsername = elements.usernameInput.value.trim();
+        if (newUsername === "") {
+            alert("❌ Username cannot be empty!");
+            return;
+        }
 
         try {
-            const response = await fetch("/api/settings", {
+            const response = await fetch("http://localhost:3000/api/settings", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username: newUsername }),
             });
 
             if (response.ok) {
-                alert("Settings updated successfully!");
+                document.getElementById("username").textContent = newUsername;
+                alert("✅ Profile updated successfully!");
+                elements.updateModal.style.display = "none";
             } else {
-                alert("Failed to update settings.");
+                alert("❌ Failed to update profile.");
             }
         } catch (error) {
-            console.error("Error updating settings:", error);
+            console.error("❌ Error updating profile:", error);
         }
+    });
+
+    // ✅ Close update modal
+    elements.cancelUpdate.addEventListener("click", () => {
+        elements.updateModal.style.display = "none";
     });
 });

@@ -3,7 +3,7 @@ const router = express.Router();
 const authenticate = require('../middlewares/authenticate');
 const User = require('../models/user');
 
-// Получение настроек пользователя
+// Get user settings
 router.get('/', authenticate, async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
@@ -14,11 +14,11 @@ router.get('/', authenticate, async (req, res) => {
             notifications: user.settings.notifications
         });
     } catch (error) {
-        res.status(500).json({ message: 'Ошибка сервера' });
+        res.status(500).json({ message: 'Server error' });
     }
 });
 
-// Обновление настроек пользователя
+// Update user settings
 router.put('/', authenticate, async (req, res) => {
     try {
         const { username, email, password, theme, notifications } = req.body;
@@ -31,9 +31,9 @@ router.put('/', authenticate, async (req, res) => {
         if (typeof notifications !== 'undefined') user.settings.notifications = notifications;
 
         await user.save();
-        res.json({ message: 'Настройки обновлены' });
+        res.json({ message: 'Settings updated successfully' });
     } catch (error) {
-        res.status(500).json({ message: 'Ошибка обновления' });
+        res.status(500).json({ message: 'Error updating settings' });
     }
 });
 
