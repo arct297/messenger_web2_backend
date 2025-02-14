@@ -3,15 +3,11 @@ const router = express.Router();
 const {
   createMessage,
   getMessages,
-  getMessageById,
-  updateMessage,
-  deleteMessage
 } = require('../GenControllers/messagesController');
 
-router.post('/', createMessage);
-router.get('/', getMessages);
-router.get('/:id', getMessageById);
-router.put('/:id', updateMessage);
-router.delete('/:id', deleteMessage);
+const authenticate = require('../middlewares/authenticate')
+
+router.post('/', authenticate, createMessage);
+router.get('/', authenticate, getMessages);
 
 module.exports = router;

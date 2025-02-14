@@ -27,9 +27,20 @@ const decodeToken = (token) => {
     return jwt.decode(token);
 };
 
+const refreshAccessToken = async (refreshToken) => {
+    try {
+        const decoded = verifyToken(refreshToken, JWT_REFRESH_SECRET);
+
+        return generateAccessToken({ id: decoded.id, email: decoded.email });
+    } catch (error) {
+        throw new Error('Invalid or expired refresh token');
+    }
+};
+
 module.exports = {
     generateAccessToken,
     generateRefreshToken,
+    refreshAccessToken,
     verifyToken,
     decodeToken,
 };

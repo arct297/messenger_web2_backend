@@ -1,39 +1,56 @@
-// Frontend: settings.js
+document.addEventListener("DOMContentLoaded", () => {
+    const avatar = document.getElementById("avatar");
+    const avatarUpload = document.getElementById("avatarUpload");
+    const usernameInput = document.getElementById("usernameInput");
+    const saveChanges = document.getElementById("saveChanges");
 
-document.addEventListener("DOMContentLoaded", async () => {
-    const form = document.getElementById("settings-form");
-    const nameInput = document.getElementById("name");
-    const emailInput = document.getElementById("email");
-    const passwordInput = document.getElementById("password");
+    // Загрузка аватара
+    avatar.addEventListener("click", () => avatarUpload.click());
 
-    // Fetch user data
-    async function loadUserData() {
-        const response = await fetch("/settings/user");
-        const data = await response.json();
-        nameInput.value = data.name;
-        emailInput.value = data.email;
-    }
+    avatarUpload.addEventListener("change", async (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const formData = new FormData();
+            formData.append("avatar", file);
 
-    form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const updatedData = {
-            name: nameInput.value,
-            email: emailInput.value,
-            password: passwordInput.value,
-        };
+            try {
+                const response = await fetch("/api/settings/avatar", {
+                    method: "POST",
+                    body: formData,
+                });
 
-        const response = await fetch("/settings/update", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(updatedData),
-        });
-
-        if (response.ok) {
-            alert("Settings updated successfully!");
-        } else {
-            alert("Error updating settings");
+                const data = await response.json();
+                if (response.ok) {
+                    avatar.src = data.avatarUrl;
+                } else {
+                    alert("Failed to upload avatar");
+                }
+            } catch (error) {
+                console.error("Error uploading avatar:", error);
+            }
         }
     });
 
-    loadUserData();
+    // Сохранение имени
+    saveChanges.addEventListener("click", async () => {
+        const newUsername = usernameInput.value;
+
+        if (newUsername.trim() === "") return alert("Username cannot be empty!");
+
+        try {
+            const response = await fetch("/api/settings", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username: newUsername }),
+            });
+
+            if (response.ok) {
+                alert("Settings updated successfully!");
+            } else {
+                alert("Failed to update settings.");
+            }
+        } catch (error) {
+            console.error("Error updating settings:", error);
+        }
+    });
 });

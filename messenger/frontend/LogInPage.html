@@ -8,6 +8,7 @@
 </head>
 <body>
     <div class="main">
+        
         <div class="text-above-form">
             <h1>Log in to Hurricane!</h1>
             <p>Please log in to your account by entering login and password below!</p>
@@ -21,10 +22,12 @@
                     <input type="checkbox" id="stay-signed-in">
                     <label for="stay-signed-in">Stay signed in</label>
                 </div>
+                
                 <p id="result"></p>
                 <button type="submit">Log In</button>
             </form>
             <p>Don't have an account? <a href="/auth/signup/">Sign up here</a></p>
+            <div id="error-message" style="display: none; color: red; margin-bottom: 10px;"></div>
         </div>
     </div>
 

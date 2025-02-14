@@ -58,7 +58,8 @@ app.use('/users', userRoutes)
 app.use('/messenger', messengerRoutes);
 app.use('/settings', settingsRoutes);
 
-// Main path controller
+app.use(express.static(path.join(__dirname, 'frontend')))
+
 app.get('/', (req, res) => {
     res.redirect('/messenger');
 });
@@ -83,5 +84,5 @@ app.use((err, req, res, next) => {
 
 const port = process.env.SERVER_PORT;
 app.listen(port, () => {
-    console.log(`http://localhost:${port}`);
+    console.log(`Server running on http://localhost:${port}`);
 });
