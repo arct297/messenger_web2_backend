@@ -2,9 +2,9 @@ const addChatButton = document.getElementById('add-chat-button');
 const modal = document.getElementById('modal');
 const closeModalBtn = document.querySelector('.close-modal-button');
 
-
 const createChatResultElement = document.getElementById("chat-creating-result");
 const createChatButton = document.getElementById("create-chat-button");
+const addUserToChatButton = document.getElementById("add-user-chat-button");
 const partnerUserNameElement = document.getElementById("partner-username");
 
 const logOutButtonElement = document.getElementById("logout-button");
@@ -13,11 +13,15 @@ const settingsButtonElement = document.getElementById("settings-button");
 const sendMessageButton = document.querySelector(".send-button");
 const messageInputElement = document.querySelector(".input-block input");
 
+const participantsListElement = document.querySelector(".add-user-chat-list");
+
 var selfUserId = null;
 var selectedChat = null;
 
 let lastMessageTimestamp = null;
 let lastChatTimestamp = null;
+
+var participants = [];
 
 function getCookie(name) {
     const cookies = document.cookie.split('; ');
@@ -53,7 +57,7 @@ window.addEventListener('click', (event) => {
     }
 });
 
-createChatButton.addEventListener('click', async () => {
+addUserToChatButton.addEventListener('click', async () => {
     const partnerUsername = partnerUserNameElement.value;
     if (!partnerUsername) {
         createChatResultElement.className = "chat-creating-result-warning";
@@ -61,8 +65,22 @@ createChatButton.addEventListener('click', async () => {
         createChatResultElement.style.display = "block";
         return;
     }
+    partnerUserNameElement.value = "";
 
+    participants.push(partnerUsername);
+    
+    const chatParticipantElement = document.createElement("div");
+    chatParticipantElement.classList.add("add-user-chat-user");
+    chatParticipantElement.innerText = partnerUsername;
+
+    participantsListElement.appendChild(chatParticipantElement);    
+    
+});
+
+createChatButton.addEventListener('click', async () => {
     try {
+        var chatType = participants.length > 1 ? "group" : "private";
+        console.log(chatType, participants.length);
         const response = await fetch('/chats/', {
             method: 'POST',
             headers: {
@@ -70,9 +88,13 @@ createChatButton.addEventListener('click', async () => {
             },
             body: JSON.stringify(
                 { 
-                    participants : [partnerUsername,], chatType : "private", title : null, }
+                    participants : participants, chatType : chatType, title : null, }
                 )
         });
+
+
+        participants = [];
+        participantsListElement.innerHTML = "";
 
         const responseJSON = await response.json();
         console.log(response.status, responseJSON);

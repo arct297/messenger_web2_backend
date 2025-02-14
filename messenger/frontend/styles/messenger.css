@@ -475,3 +475,25 @@ body {
 .chat-creating-result-error {
     color: red;
 }
+
+.add-user-chat-list {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.add-user-chat-list .add-user-chat-user {
+    color: white;
+    padding: 5px;
+    border-radius: 5px;
+    background-color: #a682d6;
+}
+
+.add-user-chat-button {
+    width: auto;
+    padding: 7px;
+    border: none;
+    border-radius: 10px;
+    font-size: large;    
+}

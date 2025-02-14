@@ -1,11 +1,10 @@
 const express = require('express');
 const router = express.Router();
-
 const authenticate = require('../middlewares/authenticate');
-const { drawSettingsPage, updateUserSettings } = require('../GenControllers/settingsController');
+const { getSettings, updateSettings, drawSettingsPage } = require('../GenControllers/settingsController');
 
 router.get('/', authenticate, drawSettingsPage);
-
-router.post('/update', authenticate, updateUserSettings);
+router.get('/r', authenticate, getSettings);
+router.put('/', authenticate, updateSettings);
 
 module.exports = router;
