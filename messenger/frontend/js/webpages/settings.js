@@ -1,65 +1,37 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     console.log("✅ DOM fully loaded and script is running!");
 
-    // Getting all necessary elements
-    const elements = {
-        avatar: document.getElementById("avatar"),
-        avatarUpload: document.getElementById("avatarUpload"),
-        usernameInput: document.getElementById("usernameInput"),
-        saveChanges: document.getElementById("saveChanges"),
-        updateProfile: document.getElementById("updateProfile"),
-        updateModal: document.getElementById("updateModal"),
-        confirmUpdate: document.getElementById("confirmUpdate"),
-        cancelUpdate: document.getElementById("cancelUpdate"),
-    };
+    const usernameElement = document.getElementById("username");
+    const usernameInput = document.getElementById("usernameInput");
+    const saveChanges = document.getElementById("saveChanges");
+    const notificationsButton = document.getElementById("notifications");
+    const themeButton = document.getElementById("theme");
+    const privacyButton = document.getElementById("privacy");
 
-    // Debugging: Log missing elements
-    let missingElements = Object.keys(elements).filter(key => !elements[key]);
-    if (missingElements.length > 0) {
-        console.error(`❌ Error: Missing elements: ${missingElements.join(", ")}`);
-        console.log("📌 Check your HTML: Are these IDs correct?");
-        console.log("🔎 Open DevTools (F12) → Console and check with document.getElementById('missing_id')");
+    if (!usernameElement || !usernameInput || !saveChanges) {
+        console.error("❌ Missing elements: username, usernameInput, or saveChanges");
         return;
     }
 
     console.log("✅ All elements found!");
 
-    // ✅ Avatar Upload Handling
-    elements.avatar.addEventListener("click", () => elements.avatarUpload.click());
-
-    elements.avatarUpload.addEventListener("change", async (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            const formData = new FormData();
-            formData.append("avatar", file);
-
-            try {
-                const response = await fetch("/settings", {
-                    method: "POST",
-                    body: formData,
-                });
-
-                const data = await response.json();
-                if (response.ok) {
-                    elements.avatar.src = data.avatarUrl;
-                    alert("✅ Avatar uploaded successfully!");
-                } else {
-                    alert("❌ Failed to upload avatar: " + data.message);
-                }
-            } catch (error) {
-                console.error("❌ Error uploading avatar:", error);
-            }
+    // ✅ Получаем текущий никнейм при загрузке
+    try {
+        const response = await fetch("/settings/r");
+        const data = await response.json();
+        if (response.ok) {
+            usernameElement.textContent = data.username;
+            usernameInput.value = data.username;
+        } else {
+            console.error("❌ Failed to fetch user settings:", data.message);
         }
-    });
+    } catch (error) {
+        console.error("❌ Error fetching user settings:", error);
+    }
 
-    // ✅ Open update confirmation modal
-    elements.updateProfile.addEventListener("click", () => {
-        elements.updateModal.style.display = "block";
-    });
-
-    // ✅ Confirm profile update
-    elements.confirmUpdate.addEventListener("click", async () => {
-        const newUsername = elements.usernameInput.value.trim();
+    // ✅ Обновляем никнейм
+    saveChanges.addEventListener("click", async () => {
+        const newUsername = usernameInput.value.trim();
         if (newUsername === "") {
             alert("❌ Username cannot be empty!");
             return;
@@ -72,20 +44,32 @@ document.addEventListener("DOMContentLoaded", () => {
                 body: JSON.stringify({ username: newUsername }),
             });
 
+            const data = await response.json();
+
             if (response.ok) {
-                document.getElementById("username").textContent = newUsername;
-                alert("✅ Profile updated successfully!");
-                elements.updateModal.style.display = "none";
+                usernameElement.textContent = newUsername;
+                alert("✅ Username updated successfully!");
             } else {
-                alert("❌ Failed to update profile.");
+                alert("❌ Failed to update username: " + data.message);
             }
         } catch (error) {
-            console.error("❌ Error updating profile:", error);
+            console.error("❌ Error updating username:", error);
         }
     });
 
-    // ✅ Close update modal
-    elements.cancelUpdate.addEventListener("click", () => {
-        elements.updateModal.style.display = "none";
+    // ✅ Обработчик кнопки "Notifications"
+    notificationsButton.addEventListener("click", () => {
+        alert("🔔 Notifications settings will be available soon!");
+    });
+
+    // ✅ Обработчик кнопки "Theme" (смена темы)
+    themeButton.addEventListener("click", () => {
+        document.body.classList.toggle("dark-mode");
+        alert("🎨 Theme changed!");
+    });
+
+    // ✅ Обработчик кнопки "Privacy & Security"
+    privacyButton.addEventListener("click", () => {
+        alert("🔒 Privacy settings will be available soon!");
     });
 });

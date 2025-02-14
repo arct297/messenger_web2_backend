@@ -99,6 +99,7 @@ button {
 
 /* Темная тема */
 .dark-mode {
-    background: #1a1a2e;
-    color: white;
+    background: #444456;
+    color: rgb(58, 56, 56);
 }
+
