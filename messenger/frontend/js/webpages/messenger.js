@@ -2,27 +2,86 @@ const addChatButton = document.getElementById('add-chat-button');
 const modal = document.getElementById('modal');
 const closeModalBtn = document.querySelector('.close-modal-button');
 
-
 const createChatResultElement = document.getElementById("chat-creating-result");
 const createChatButton = document.getElementById("create-chat-button");
+const addUserToChatButton = document.getElementById("add-user-chat-button");
 const partnerUserNameElement = document.getElementById("partner-username");
 
 const logOutButtonElement = document.getElementById("logout-button");
+const settingsButtonElement = document.getElementById("settings-button");
 
 const sendMessageButton = document.querySelector(".send-button");
 const messageInputElement = document.querySelector(".input-block input");
-console.log(messageInputElement);
+const searchInput = document.getElementById("search-messages");
+
+const participantsListElement = document.querySelector(".add-user-chat-list");
+
+const messagesContainer = document.querySelector(".chat-block-content");
+let currentPage = 1;
+let isFetching = false;
+let hasMoreMessages = true;
+let lastRenderedDate = null;
+let isFirstLoad  = true;
+
 
 var selfUserId = null;
 var selectedChat = null;
+
+let lastMessageTimestamp = null;
+let lastChatTimestamp = null;
+
+var participants = [];
+
+searchInput.addEventListener("input", async () => {
+    const query = searchInput.value.trim();
+
+    if (!query) {
+        console.log("Поле поиска очищено, загружаем все сообщения...");
+        
+        if (selectedChat) {
+            await loadMessages(true); // Перезагружаем все сообщения в текущем чате
+        }
+        return;
+    }
+
+    console.log("Поиск сообщений:", query);
+    await searchMessages(query);
+});
+
+
+async function searchMessages(query) {
+    if (!selectedChat) return;
+    
+    const chatId = selectedChat.dataset.chatId;
+    if (!chatId) return;
+
+    try {
+        const response = await fetch(`/messages/search?query=${query}&chatId=${chatId}`, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" }
+        });
+
+        const textResponse = await response.text();
+        console.log("Сырой ответ от сервера:", textResponse); // Проверяем, что вернул сервер
+
+        const responseJSON = JSON.parse(textResponse);
+        console.log("Ответ сервера (JSON):", responseJSON);
+
+        if (response.status === 200 && responseJSON.status === "success") {
+            renderChatMessages(responseJSON.messages);
+        } else {
+            console.log(`Ошибка поиска: ${response.status}`, responseJSON);
+        }
+    } catch (error) {
+        console.error("Ошибка поиска:", error);
+    }
+}
 
 
 function getCookie(name) {
     const cookies = document.cookie.split('; ');
     for (let cookie of cookies) {
         const [key, value] = cookie.split('=');
-        console.log(key);
-        console.log(value);
         if (key === name) {
             return decodeURIComponent(value);
         }
@@ -36,7 +95,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 addChatButton.addEventListener('click', () => {
-    console.log('clicked');
     modal.style.display = 'flex';
 });
 
@@ -51,7 +109,7 @@ window.addEventListener('click', (event) => {
     }
 });
 
-createChatButton.addEventListener('click', async () => {
+addUserToChatButton.addEventListener('click', async () => {
     const partnerUsername = partnerUserNameElement.value;
     if (!partnerUsername) {
         createChatResultElement.className = "chat-creating-result-warning";
@@ -59,8 +117,21 @@ createChatButton.addEventListener('click', async () => {
         createChatResultElement.style.display = "block";
         return;
     }
+    partnerUserNameElement.value = "";
 
+    participants.push(partnerUsername);
+    
+    const chatParticipantElement = document.createElement("div");
+    chatParticipantElement.classList.add("add-user-chat-user");
+    chatParticipantElement.innerText = partnerUsername;
+
+    participantsListElement.appendChild(chatParticipantElement);    
+    
+});
+
+createChatButton.addEventListener('click', async () => {
     try {
+        var chatType = participants.length > 1 ? "group" : "private";
         const response = await fetch('/chats/', {
             method: 'POST',
             headers: {
@@ -68,12 +139,15 @@ createChatButton.addEventListener('click', async () => {
             },
             body: JSON.stringify(
                 { 
-                    participants : [partnerUsername,], chatType : "private", title : null, }
+                    participants : participants, chatType : chatType, title : null, }
                 )
         });
 
+
+        participants = [];
+        participantsListElement.innerHTML = "";
+
         const responseJSON = await response.json();
-        console.log(response.status, responseJSON);
         
         createChatResultElement.className = "";
         createChatResultElement.style.display = "block";
@@ -115,29 +189,28 @@ logOutButtonElement.addEventListener('click', async () => {
                 }
             )
         });
-
-        // const responseJSON = await response.json();
         
         if (response.status === 200) {
             window.location.href = "/auth/login"
         } else {
             console.log("error");
         }
-        // } else if (response.status === 404) {
-        //     createChatResultElement.textContent = "User with such username is not found!";
-        //     createChatResultElement.className = "chat-creating-result-warning";
-        // } else {
-        //     createChatResultElement.textContent = "Error... Try again later!";
-        //     createChatResultElement.className = "chat-creating-result-error";
-        // }
         
     } catch (error) {
         console.log(error)
-        // createChatResultElement.textContent = "Error... Try again later!";
-        // createChatResultElement.className = "chat-creating-result-error";
     }
 });
 
+
+settingsButtonElement.addEventListener('click', async () => {
+    try {
+
+        window.location.href = "/settings"
+        
+    } catch (error) {
+        console.log(error)
+    }
+});
 
 function createChatElement(chat) {
     const chatElement = document.createElement("div");
@@ -196,14 +269,18 @@ async function changeSelectedChat(newSelectedChat, chatData) {
             const responseJSON = await response.json();
             if (response.status === 200 && responseJSON.status === "success") {
                 chatData.messages = responseJSON.messagesList;
+
+                if (chatData.messages.length > 0) {
+                    lastMessageTimestamp = chatData.messages[chatData.messages.length - 1].createdAt;
+                }
             } else {
-                console.log(response.status);
                 window.location.href = "/messenger"
                 return;
             }
         } catch (error) {
             console.log(error);
         }
+
         renderChatMessages(chatData.messages);
         
     } catch (error) {
@@ -219,7 +296,6 @@ async function changeSelectedChat(newSelectedChat, chatData) {
 }
 
 function renderChatHeader(chatData) {
-    console.log(`chat data ${chatData}`)
     const headerContainer = document.querySelector(".chat-block-header");
     try {
         headerContainer.innerHTML = ""; 
@@ -259,28 +335,51 @@ function renderChatHeader(chatData) {
     header.appendChild(textInfoBlock);
     header.appendChild(menuBlock);
 
-    console.log(header);
-    console.log(headerContainer);
-
     headerContainer.appendChild(header);
     headerContainer.style.display = "flex";
 }
 
 
-function renderChatMessages(messages) {
-    console.log(messages);
-    const messagesContainer = document.querySelector(".chat-block-content");
-    try {
-        messagesContainer.style.visibility = "visible";
+function renderChatMessages(messages, append = false, prepend = false) {
+    if (!messagesContainer) {
+        return;
+    }
+
+    messagesContainer.style.visibility = "visible";
+
+    if (!append) {
         messagesContainer.innerHTML = "";
-    } catch {}
+        lastRenderedDate = null; 
+    }
 
+    let lastDate = null;
+    
+    const previousScrollHeight = messagesContainer.scrollHeight;
+    
     messages.forEach(message => {
-        const messageElement = document.createElement("div");
+        if (document.querySelector(`[data-message-id="${message._id}"]`)) {
+            return;
+        }
 
-        if (message.type === "system") {
-            messageElement.classList.add("message", "system-message");
-        } else if (message.sender._id === selfUserId) {
+        const messageDate = new Date(message.createdAt);
+        const formattedDate = messageDate.toLocaleDateString();
+
+        // if (lastDate !== formattedDate) {
+        //     // const systemMessageElement = document.createElement("div");
+        //     // systemMessageElement.classList.add("message", "system-message");
+        //     // systemMessageElement.textContent = formattedDate;
+
+        //     prepend ? messagesContainer.prepend(systemMessageElement) : messagesContainer.appendChild(systemMessageElement);
+        //     lastDate = formattedDate;
+        // }
+
+        const messageElement = document.createElement("div");
+        messageElement.dataset.messageId = message._id;
+        messageElement.dataset.createdAt = message.createdAt;
+
+        const senderId = message.sender?._id || message.sender;
+
+        if (senderId === selfUserId) {
             messageElement.classList.add("message", "outcome-message");
         } else {
             messageElement.classList.add("message", "income-message");
@@ -292,14 +391,68 @@ function renderChatMessages(messages) {
 
         const infoElement = document.createElement("div");
         infoElement.classList.add("message-info");
-        infoElement.textContent = message.timestamp.split("T")[1].split(".")[0];
+        infoElement.textContent = messageDate.toLocaleTimeString();
 
         messageElement.appendChild(contentElement);
         messageElement.appendChild(infoElement);
 
-        messagesContainer.appendChild(messageElement);
+        if (prepend) {
+            messagesContainer.prepend(messageElement);
+        } else {
+            messagesContainer.appendChild(messageElement);
+        }
     });
-    messagesContainer.style.display = "flex";
+
+    if (prepend) {
+        requestAnimationFrame(() => {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight - previousScrollHeight;
+        });
+    }
+}
+
+
+async function editMessage(messageId, contentElement) {
+    const newContent = prompt("Edit your message:", contentElement.textContent);
+    if (!newContent || newContent.trim() === "") return;
+
+    try {
+        const response = await fetch(`/messages/${messageId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: newContent })
+        });
+
+        const responseJSON = await response.json();
+        if (response.status === 200 && responseJSON.status === "success") {
+            contentElement.textContent = newContent;
+            contentElement.classList.add("edited-message");
+        } else {
+            console.log(`Message editing error: <${response.status}>`, responseJSON);
+        }
+    } catch (error) {
+        console.error("Error editing message:", error);
+    }
+}
+
+
+async function deleteMessage(messageId, messageElement) {
+    if (!confirm("Are you sure you want to delete this message?")) return;
+
+    try {
+        const response = await fetch(`/messages/${messageId}`, {
+            method: 'DELETE',
+        });
+
+        const responseJSON = await response.json();
+        if (response.status === 200 && responseJSON.status === "success") {
+            messageElement.querySelector(".message-content").textContent = "This message has been deleted";
+            messageElement.querySelector("message-actions").innerHTML = "";
+        } else {
+            console.log(`Message deletion error: <${response.status}>`, responseJSON);
+        }
+    } catch (error) {
+        console.error("Error deleting message:", error);
+    }
 }
 
 
@@ -316,7 +469,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (response.status === 200 && responseJSON.status === "success") {
             chatsList = responseJSON.chats;
         } else {
-            console.log(`Chats loading error: <${response.status}> ${responseJSON}`);
             return;
         }
         
@@ -344,49 +496,232 @@ sendMessageButton.addEventListener("click", async () => {
     try {
         const response = await fetch('/messages/', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(
-                { 
-                    content : messageText, 
-                    chatId : chatId, 
-                }
-            )
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: messageText, chatId })
         });
 
         const responseJSON = await response.json();
         if (response.status === 201 && responseJSON.status === "success") {
-            
-        } else {
-            console.log(`Message sending error: <${response.status}> ${responseJSON}`);
-            return;
-        }
-        
-    } catch (error) {
-        console.log(error)
-    }
+            const newMessage = responseJSON.savedMessage;
+            renderChatMessages([newMessage], true);
+            lastMessageTimestamp = newMessage.createdAt;
 
-    var messages = [];
-    try {
-        const response = await fetch(`/messages/?chatId=${chatId}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-        });
-        const responseJSON = await response.json();
-        if (response.status === 200 && responseJSON.status === "success") {
-            messages = responseJSON.messagesList;
+            scrollToBottom();
         } else {
-            console.log(response.status);
-            window.location.href = "/messenger"
-            return;
+            console.log(`Message sending error: <${response.status}>`, responseJSON);
         }
     } catch (error) {
         console.log(error);
     }
-    console.log(`messages ${messages}`)
-    renderChatMessages(messages);
+
     messageInputElement.value = "";
+});
+
+
+async function pollMessages() {
+    if (isFirstLoad || !selectedChat) return;
+
+    const chatId = selectedChat.dataset.chatId;
+    if (!chatId) return;
+
+    try {
+        const url = `/messages/?chatId=${chatId}&lastMessageTimestamp=${lastMessageTimestamp}`;
+
+        const response = await fetch(url, { method: 'GET' });
+        const responseJSON = await response.json();
+
+        if (response.status === 200 && responseJSON.status === "success") {
+            if (responseJSON.messagesList.length > 0) {
+                updateChatMessages(responseJSON.messagesList);
+
+                const lastMessage = responseJSON.messagesList[responseJSON.messagesList.length - 1];
+
+                const createdAt = lastMessage.updatedAt || lastMessage.createdAt; 
+                if (createdAt) {
+                    const parsedDate = new Date(createdAt);
+                    if (!isNaN(parsedDate.getTime())) {
+                        if (!lastMessageTimestamp || new Date(lastMessageTimestamp) < parsedDate) {
+                            lastMessageTimestamp = parsedDate.toISOString();
+                        }
+                    } else {
+                        console.error(createdAt);
+                    }
+                } else {
+                    console.error(lastMessage);
+                }
+            } else {
+
+            }
+        } else {
+            console.log(`Polling error: ${response.status}`, responseJSON);
+        }
+    } catch (error) {
+        console.error("Polling error:", error);
+    }
+}
+
+setInterval(pollMessages, 3000);
+
+
+
+async function pollChats() {
+    try {
+        const url = `/chats/` + (lastChatTimestamp ? `?lastChatTimestamp=${lastChatTimestamp}` : "");
+
+        const response = await fetch(url, { method: 'GET' });
+        const responseJSON = await response.json();
+
+        if (response.status === 200 && responseJSON.status === "success") {
+            if (responseJSON.chats.length > 0) {
+                renderChats(responseJSON.chats, true);
+
+                lastChatTimestamp = new Date(responseJSON.chats[responseJSON.chats.length - 1].createdAt).toISOString();
+            }
+        } else {
+            console.log(`Polling error: ${response.status}`, responseJSON);
+        }
+    } catch (error) {
+        console.error("Error polling chats:", error);
+    }
+}
+
+
+function renderChats(chats, append = false) {
+    const chatContainer = document.querySelector(".chats-list");
+    if (!append) {
+        chatContainer.innerHTML = "";
+    }
+
+    const existingChatIds = new Set(
+        [...chatContainer.children].map(chat => chat.dataset.chatId)
+    );
+
+    chats.forEach(chat => {
+        if (existingChatIds.has(chat._id)) {
+            return;
+        }
+
+        const chatElement = createChatElement(chat);
+        chatElement.addEventListener("click", () => changeSelectedChat(chatElement, chat));
+        chatContainer.appendChild(chatElement);
+    });
+}
+
+
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const response = await fetch('/chats/', { method: 'GET' });
+        const responseJSON = await response.json();
+
+        if (response.status === 200 && responseJSON.status === "success") {
+            renderChats(responseJSON.chats);
+
+            if (responseJSON.chats.length > 0) {
+                lastChatTimestamp = new Date(responseJSON.chats[responseJSON.chats.length - 1].createdAt).toISOString();
+            }
+        } else {
+            console.log(`Chats loading error: <${response.status}>`, responseJSON);
+        }
+    } catch (error) {
+        console.log(error);
+    }
+});
+
+
+setInterval(pollChats, 3000);
+
+
+function updateChatMessages(newMessages) {
+    const messagesContainer = document.querySelector(".chat-block-content");
+    const existingMessages = new Map();
+
+    messagesContainer.querySelectorAll(".message").forEach(messageElement => {
+        existingMessages.set(messageElement.dataset.messageId, messageElement);
+    });
+
+    newMessages.forEach(newMessage => {
+        const existingMessageElement = existingMessages.get(newMessage._id);
+
+        if (newMessage.deleted) {
+            if (existingMessageElement) {
+                existingMessageElement.remove();
+            }
+        } else if (existingMessageElement) {
+            const contentElement = existingMessageElement.querySelector(".message-content");
+            if (contentElement.textContent !== newMessage.content) {
+                contentElement.textContent = newMessage.content;
+                existingMessageElement.classList.add("edited-message");
+            }
+        } else {
+            renderChatMessages([newMessage], true);
+        }
+    });
+}
+
+function scrollToBottom() {
+    const messagesContainer = document.querySelector(".chat-block-content");
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+async function loadMessages(initialLoad = false) {
+    if (isFetching) return;  // Проверка, чтобы избежать дублирующихся запросов
+    isFetching = true;
+
+    const chatId = selectedChat?.dataset?.chatId;
+    if (!chatId) {
+        isFetching = false;
+        return;
+    }
+
+    // Если перезагружаем все сообщения (например, при очистке поиска)
+    if (initialLoad) {
+        currentPage = 1;  // Сбрасываем пагинацию
+        hasMoreMessages = true;
+        messagesContainer.innerHTML = ""; // Очищаем сообщения перед полной загрузкой
+    }
+
+    try {
+        console.log(`Загружаем сообщения для чата ${chatId}, страница ${currentPage}...`);
+        
+        const response = await fetch(`/messages/?chatId=${chatId}&page=${currentPage}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        const responseJSON = await response.json();
+
+        if (response.status === 200 && responseJSON.status === "success") {
+            const messages = responseJSON.messagesList;
+            hasMoreMessages = responseJSON.hasMore;
+
+            if (messages.length > 0) {
+                console.log(`Получено ${messages.length} сообщений`);
+                renderChatMessages(messages.reverse(), !initialLoad, true); 
+                currentPage++; // Увеличиваем номер страницы только при постраничной загрузке
+            } else {
+                console.log("Нет новых сообщений");
+            }
+        } else {
+            console.log("Ошибка загрузки сообщений:", responseJSON);
+        }
+    } catch (error) {
+        console.error("Ошибка загрузки сообщений:", error);
+    }
+
+    isFetching = false;
+}
+
+
+messagesContainer?.addEventListener('scroll', async () => {
+    if (messagesContainer.scrollTop <= 10 && hasMoreMessages && !isFetching) {
+        await loadMessages();
+    }
+});
+
+
+document.addEventListener('DOMContentLoaded', async () => {
+    if (!messagesContainer) {
+        return;
+    }
+    await loadMessages(true);
 });

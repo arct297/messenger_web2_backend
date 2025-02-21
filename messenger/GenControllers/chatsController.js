@@ -119,7 +119,28 @@ exports.createChat = async (req, res) => {
                     message: "Private chat with these participants already exists"
                 });
             }
-        } else if (chatType !== "group") {
+        } else if (chatType === "group") {
+            console.log("title");
+
+            title = "";
+            participants.forEach(participant => {
+                title = `${title} ${participant}`; 
+            });
+            console.log("title");
+            avatar = "default"
+            const existingChat = await Chat.findOne({ 
+                chatType: "private",
+                participants: { $all: participantsIds, $size: participantsIds.length }
+            });
+
+            if (existingChat) {
+                return res.status(400).json({
+                    status: "warning",
+                    message: "Private chat with these participants already exists"
+                });
+            }
+
+        } else {
             return res.status(400).json({ 
                 status: "error", 
                 message: "Unsupported chatType"
