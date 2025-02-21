@@ -15,6 +15,13 @@ const messageInputElement = document.querySelector(".input-block input");
 
 const participantsListElement = document.querySelector(".add-user-chat-list");
 
+const messagesContainer = document.querySelector(".chat-block-content");
+let currentPage = 1;
+let isFetching = false;
+let hasMoreMessages = true;
+let isFirstLoad = false;
+let lastRenderedDate = null;
+
 var selfUserId = null;
 var selectedChat = null;
 
@@ -221,7 +228,7 @@ async function changeSelectedChat(newSelectedChat, chatData) {
                 chatData.messages = responseJSON.messagesList;
 
                 if (chatData.messages.length > 0) {
-                    lastMessageTimestamp = chatData.messages[chatData.messages.length - 1].timestamp;
+                    lastMessageTimestamp = chatData.messages[chatData.messages.length - 1].createdAt;
                 }
             } else {
                 console.log(response.status);
@@ -299,7 +306,6 @@ function renderChatMessages(messages, append = false) {
     console.log("Messages to render:", messages);
     
     const messagesContainer = document.querySelector(".chat-block-content");
-    console.log("Messages container:", messagesContainer);
 
     if (!messagesContainer) {
         console.error("Error: Messages container not found!");
@@ -310,6 +316,7 @@ function renderChatMessages(messages, append = false) {
 
     if (!append) {
         messagesContainer.innerHTML = "";
+        lastRenderedDate = null; // Сброс даты при полной загрузке чата
     }
 
     const existingMessageIds = new Set(
@@ -319,10 +326,23 @@ function renderChatMessages(messages, append = false) {
     messages.forEach(message => {
         if (existingMessageIds.has(message._id)) {
             console.log("Skipping duplicate message:", message);
-            return; 
+            return;
         }
 
         console.log("Rendering message:", message);
+
+        const messageDate = new Date(message.createdAt);
+        const formattedDate = messageDate.toLocaleDateString();
+
+        // ✅ Добавляем системное сообщение с датой **только если день изменился**
+        if (lastRenderedDate !== formattedDate) {
+            const systemMessageElement = document.createElement("div");
+            systemMessageElement.classList.add("message", "system-message");
+            systemMessageElement.textContent = formattedDate;
+
+            messagesContainer.appendChild(systemMessageElement);
+            lastRenderedDate = formattedDate; // Обновляем последнюю рендеренную дату
+        }
 
         const messageElement = document.createElement("div");
         messageElement.dataset.messageId = message._id;
@@ -342,19 +362,82 @@ function renderChatMessages(messages, append = false) {
 
         const infoElement = document.createElement("div");
         infoElement.classList.add("message-info");
-        infoElement.textContent = new Date(message.timestamp).toLocaleTimeString();
+        infoElement.textContent = messageDate.toLocaleTimeString();
 
         messageElement.appendChild(contentElement);
         messageElement.appendChild(infoElement);
 
+        if (senderId === selfUserId && !message.deleted) {
+            const actionButtons = document.createElement("div");
+            actionButtons.classList.add("message-actions");
+
+            const editButton = document.createElement("button");
+            editButton.classList.add("edit-message-btn");
+            editButton.textContent = "✏️";
+            editButton.addEventListener("click", () => editMessage(message._id, contentElement));
+
+            const deleteButton = document.createElement("button");
+            deleteButton.classList.add("delete-message-btn");
+            deleteButton.textContent = "🗑️";
+            deleteButton.addEventListener("click", () => deleteMessage(message._id, messageElement));
+
+            actionButtons.appendChild(editButton);
+            actionButtons.appendChild(deleteButton);
+            messageElement.appendChild(actionButtons);
+        }
+
         messagesContainer.appendChild(messageElement);
     });
 
-    messagesContainer.style.display = "flex";
+    scrollToBottom();
 }
 
 
 
+
+async function editMessage(messageId, contentElement) {
+    const newContent = prompt("Edit your message:", contentElement.textContent);
+    if (!newContent || newContent.trim() === "") return;
+
+    try {
+        const response = await fetch(`/messages/${messageId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: newContent })
+        });
+
+        const responseJSON = await response.json();
+        if (response.status === 200 && responseJSON.status === "success") {
+            contentElement.textContent = newContent;
+            contentElement.classList.add("edited-message");
+        } else {
+            console.log(`Message editing error: <${response.status}>`, responseJSON);
+        }
+    } catch (error) {
+        console.error("Error editing message:", error);
+    }
+}
+
+
+async function deleteMessage(messageId, messageElement) {
+    if (!confirm("Are you sure you want to delete this message?")) return;
+
+    try {
+        const response = await fetch(`/messages/${messageId}`, {
+            method: 'DELETE',
+        });
+
+        const responseJSON = await response.json();
+        if (response.status === 200 && responseJSON.status === "success") {
+            messageElement.querySelector(".message-content").textContent = "This message has been deleted";
+            messageElement.querySelector("message-actions").innerHTML = "";
+        } else {
+            console.log(`Message deletion error: <${response.status}>`, responseJSON);
+        }
+    } catch (error) {
+        console.error("Error deleting message:", error);
+    }
+}
 
 
 
@@ -406,8 +489,10 @@ sendMessageButton.addEventListener("click", async () => {
         if (response.status === 201 && responseJSON.status === "success") {
             const newMessage = responseJSON.savedMessage;
             renderChatMessages([newMessage], true);
-            lastMessageTimestamp = newMessage.timestamp;
+            lastMessageTimestamp = newMessage.createdAt;
             console.log(lastMessageTimestamp);
+
+            scrollToBottom();
         } else {
             console.log(`Message sending error: <${response.status}>`, responseJSON);
         }
@@ -419,32 +504,56 @@ sendMessageButton.addEventListener("click", async () => {
 });
 
 
-
-
 async function pollMessages() {
-    if (!selectedChat) return;
+    if (isFirstLoad || !selectedChat) return;
+
     const chatId = selectedChat.dataset.chatId;
+    if (!chatId) return;
 
     try {
-        const url = `/messages/?chatId=${chatId}` + (lastMessageTimestamp ? `&lastMessageTimestamp=${lastMessageTimestamp}` : "");
+        const url = `/messages/?chatId=${chatId}&lastMessageTimestamp=${lastMessageTimestamp}`;
+        console.log("📡 Polling messages from:", url);
+
         const response = await fetch(url, { method: 'GET' });
         const responseJSON = await response.json();
 
         if (response.status === 200 && responseJSON.status === "success") {
             if (responseJSON.messagesList.length > 0) {
-                renderChatMessages(responseJSON.messagesList, true);
+                console.log("📩 Поллинг: пришли новые сообщения!", responseJSON.messagesList);
 
-                lastMessageTimestamp = new Date(responseJSON.messagesList[responseJSON.messagesList.length - 1].timestamp).toISOString();
+                updateChatMessages(responseJSON.messagesList);
+
+                // 🔥 Берём **самую последнюю дату**, а не просто `lastMessageTimestamp`
+                const lastMessage = responseJSON.messagesList[responseJSON.messagesList.length - 1];
+
+                const createdAt = lastMessage.updatedAt || lastMessage.createdAt; 
+                if (createdAt) {
+                    const parsedDate = new Date(createdAt);
+                    if (!isNaN(parsedDate.getTime())) {
+                        // ✅ Обновляем lastMessageTimestamp **только если он новее**
+                        if (!lastMessageTimestamp || new Date(lastMessageTimestamp) < parsedDate) {
+                            lastMessageTimestamp = parsedDate.toISOString();
+                            console.log("✅ lastMessageTimestamp обновлён:", lastMessageTimestamp);
+                        }
+                    } else {
+                        console.error("❌ Некорректный формат времени:", createdAt);
+                    }
+                } else {
+                    console.error("⚠️ ВНИМАНИЕ: `updatedAt` и `createdAt` отсутствуют!", lastMessage);
+                }
+            } else {
+                console.log("🛑 Поллинг: новых сообщений нет.");
             }
         } else {
             console.log(`Polling error: ${response.status}`, responseJSON);
         }
     } catch (error) {
-        console.error("Error polling messages:", error);
+        console.error("❌ Ошибка при поллинге сообщений:", error);
     }
 }
 
 setInterval(pollMessages, 3000);
+
 
 
 async function pollChats() {
@@ -519,3 +628,44 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 setInterval(pollChats, 3000);
+
+
+function updateChatMessages(newMessages) {
+    const messagesContainer = document.querySelector(".chat-block-content");
+    const existingMessages = new Map();
+
+    messagesContainer.querySelectorAll(".message").forEach(messageElement => {
+        existingMessages.set(messageElement.dataset.messageId, messageElement);
+    });
+
+    newMessages.forEach(newMessage => {
+        const existingMessageElement = existingMessages.get(newMessage._id);
+
+        if (newMessage.deleted) {
+            if (existingMessageElement) {
+                existingMessageElement.remove();
+            }
+        } else if (existingMessageElement) {
+            const contentElement = existingMessageElement.querySelector(".message-content");
+            if (contentElement.textContent !== newMessage.content) {
+                contentElement.textContent = newMessage.content;
+                existingMessageElement.classList.add("edited-message");
+            }
+        } else {
+            renderChatMessages([newMessage], true);
+        }
+    });
+}
+
+function scrollToBottom() {
+    const messagesContainer = document.querySelector(".chat-block-content");
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+messagesContainer?.addEventListener('scroll', async () => {
+    if (messagesContainer.scrollTop <= 10 && hasMoreMessages && !isFetching) {
+        console.log("this is top");
+        isFetching = true;
+
+    }
+});

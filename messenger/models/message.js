@@ -12,7 +12,8 @@ const messageSchema = new mongoose.Schema({
     required: true 
   },
   content: { type: String, required: true },
-  timestamp: { type: Date, default: Date.now }
-});
+  edited : { type: Boolean, default: false},
+  deleted : { type: Boolean, default: false},
+}, {timestamps: true });
 
 module.exports = mongoose.model('Message', messageSchema);

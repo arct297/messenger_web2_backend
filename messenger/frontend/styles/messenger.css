@@ -240,13 +240,26 @@ body {
     gap: 8px;
     box-sizing: border-box;
     padding: 10px;
+
+    overflow-y: auto;
+    max-height: 83%; 
+    scrollbar-width: thin; 
+    scrollbar-color: #b3b3b3 #f5f5f5;
 }
 
+.chat-block .chat-block-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-block .chat-block-content::-webkit-scrollbar-thumb {
+    background-color: #b3b3b3;
+    border-radius: 10px;
+}
 
 .chat-block .chat-block-content .message {
     height: auto;
     min-width: 150px;
-    max-width: 30%;
+    max-width: 50%;
     margin-left: 10px;
     margin-right: 10px;
     padding: 7px 11px;
@@ -496,4 +509,26 @@ body {
     border: none;
     border-radius: 10px;
     font-size: large;    
+}
+
+
+.message-actions {
+    display: flex;
+    gap: 5px;
+    margin-left: 10px;
+}
+
+.edit-message-btn, .delete-message-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.edit-message-btn:hover {
+    color: blue;
+}
+
+.delete-message-btn:hover {
+    color: red;
 }

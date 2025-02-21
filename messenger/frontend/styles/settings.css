@@ -64,7 +64,6 @@ body {
     border-radius: 5px;
 }
 
-/* Модальное окно */
 .modal {
     display: none;
     position: fixed;
@@ -97,8 +96,15 @@ button {
     width: 100%;
 }
 
-/* Темная тема */
 .dark-mode {
     background: #444456;
     color: rgb(58, 56, 56);
+}
+
+
+.edited-message .message-content::after {
+    content: " (edited)";
+    font-size: 0.8em;
+    color: grey;
+    margin-left: 5px;
 }
