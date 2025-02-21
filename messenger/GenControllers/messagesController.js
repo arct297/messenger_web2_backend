@@ -171,5 +171,32 @@ exports.deleteMessage = async (req, res) => {
         res.status(500).json({ error: 'Failed to delete message' });
     }
 };
+exports.searchMessages = async (req, res) => {
+    try {
+        const { query, chatId } = req.query;
+
+        if (!query) {
+            return res.status(400).json({ error: "Введите поисковый запрос" });
+        }
+
+        const filter = { $text: { $search: query } };
+        if (chatId) {
+            filter.chat = chatId; // Искать в конкретном чате, если указан
+        }
+
+        const messages = await Message.find(filter)
+            .sort({ createdAt: -1 }) // Последние сообщения первыми
+            .populate('sender', 'username');
+
+        res.status(200).json({
+            status: "success",
+            messages,
+        });
+
+    } catch (error) {
+        console.error("Ошибка поиска сообщений:", error);
+        res.status(500).json({ error: "Ошибка при поиске сообщений" });
+    }
+};
 
 

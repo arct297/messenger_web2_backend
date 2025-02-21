@@ -12,6 +12,7 @@ const settingsButtonElement = document.getElementById("settings-button");
 
 const sendMessageButton = document.querySelector(".send-button");
 const messageInputElement = document.querySelector(".input-block input");
+const searchInput = document.getElementById("search-messages");
 
 const participantsListElement = document.querySelector(".add-user-chat-list");
 
@@ -30,6 +31,52 @@ let lastMessageTimestamp = null;
 let lastChatTimestamp = null;
 
 var participants = [];
+
+searchInput.addEventListener("input", async () => {
+    const query = searchInput.value.trim();
+
+    if (!query) {
+        console.log("Поле поиска очищено, загружаем все сообщения...");
+        
+        if (selectedChat) {
+            await loadMessages(true); // Перезагружаем все сообщения в текущем чате
+        }
+        return;
+    }
+
+    console.log("Поиск сообщений:", query);
+    await searchMessages(query);
+});
+
+
+async function searchMessages(query) {
+    if (!selectedChat) return;
+    
+    const chatId = selectedChat.dataset.chatId;
+    if (!chatId) return;
+
+    try {
+        const response = await fetch(`/messages/search?query=${query}&chatId=${chatId}`, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" }
+        });
+
+        const textResponse = await response.text();
+        console.log("Сырой ответ от сервера:", textResponse); // Проверяем, что вернул сервер
+
+        const responseJSON = JSON.parse(textResponse);
+        console.log("Ответ сервера (JSON):", responseJSON);
+
+        if (response.status === 200 && responseJSON.status === "success") {
+            renderChatMessages(responseJSON.messages);
+        } else {
+            console.log(`Ошибка поиска: ${response.status}`, responseJSON);
+        }
+    } catch (error) {
+        console.error("Ошибка поиска:", error);
+    }
+}
+
 
 function getCookie(name) {
     const cookies = document.cookie.split('; ');
@@ -617,7 +664,7 @@ function scrollToBottom() {
 }
 
 async function loadMessages(initialLoad = false) {
-    if (isFetching || !hasMoreMessages) return;
+    if (isFetching) return;  // Проверка, чтобы избежать дублирующихся запросов
     isFetching = true;
 
     const chatId = selectedChat?.dataset?.chatId;
@@ -626,7 +673,16 @@ async function loadMessages(initialLoad = false) {
         return;
     }
 
+    // Если перезагружаем все сообщения (например, при очистке поиска)
+    if (initialLoad) {
+        currentPage = 1;  // Сбрасываем пагинацию
+        hasMoreMessages = true;
+        messagesContainer.innerHTML = ""; // Очищаем сообщения перед полной загрузкой
+    }
+
     try {
+        console.log(`Загружаем сообщения для чата ${chatId}, страница ${currentPage}...`);
+        
         const response = await fetch(`/messages/?chatId=${chatId}&page=${currentPage}`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
@@ -639,18 +695,22 @@ async function loadMessages(initialLoad = false) {
             hasMoreMessages = responseJSON.hasMore;
 
             if (messages.length > 0) {
-                renderChatMessages(messages.reverse(), true, true); 
-                currentPage++;
+                console.log(`Получено ${messages.length} сообщений`);
+                renderChatMessages(messages.reverse(), !initialLoad, true); 
+                currentPage++; // Увеличиваем номер страницы только при постраничной загрузке
+            } else {
+                console.log("Нет новых сообщений");
             }
         } else {
-
+            console.log("Ошибка загрузки сообщений:", responseJSON);
         }
     } catch (error) {
-
+        console.error("Ошибка загрузки сообщений:", error);
     }
 
     isFetching = false;
 }
+
 
 messagesContainer?.addEventListener('scroll', async () => {
     if (messagesContainer.scrollTop <= 10 && hasMoreMessages && !isFetching) {
