@@ -43,11 +43,8 @@ exports.createMessage = async (req, res) => {
 
 exports.getMessages = async (req, res) => {
     try {
-        const { chatId, page } = req.query;
-        
-        if (!page) {
-            page = 1;
-        }
+        let { chatId, page = 1 } = req.query; // Значение по умолчанию
+        page = parseInt(page, 10);
 
         if (!chatId) {
             return res.status(400).json({ error: 'chatId is required' });
@@ -55,6 +52,10 @@ exports.getMessages = async (req, res) => {
 
         if (!mongoose.Types.ObjectId.isValid(chatId)) {
             return res.status(400).json({ error: 'Invalid chat ID' });
+        }
+
+        if (isNaN(page) || page < 1) {
+            return res.status(400).json({ error: 'Invalid page number' });
         }
 
         const chat = await Chat.findById(chatId);
@@ -66,26 +67,46 @@ exports.getMessages = async (req, res) => {
             return res.status(403).json({ error: 'You are not a participant of this chat' });
         }
 
-        let filter = { chat: chatId };
+        const pageSize = 15;
+        const totalMessages = await Message.countDocuments({ chat: chatId });
 
-        const messages = await Message.find(filter)
-            .sort({ createdAt: -1 })
-            .skip((page - 1) * 15)
-            .limit(15)
+        if (totalMessages === 0) {
+            return res.status(200).json({
+                status: "success",
+                messagesList: [],
+                hasMore: false,
+            });
+        }
+
+        // ⚡️ Вычисляем страницу с конца:
+        const totalPages = Math.ceil(totalMessages / pageSize);
+        const adjustedPage = totalPages - page; // page=1 → последняя страница, page=2 → предпоследняя
+
+        let skip = (page - 1) * pageSize;
+        skip = skip < 0 ? 0 : skip;
+        
+        console.log(skip, pageSize)
+
+        const messages = await Message.find({ chat: chatId })
+            .sort({ createdAt: -1 }) // ⚠️ Теперь сортируем в порядке создания (сначала старые)
+            .skip(skip)
+            .limit(pageSize)
             .populate('sender', 'username');
-
-        console.log("📤 Отправляем сообщения:", messages.length, "шт.");
+        
 
         res.status(200).json({
             status: "success",
             messagesList: messages.reverse(),
+            hasMore: adjustedPage > 0, // Есть ли ещё старые сообщения
         });
 
     } catch (error) {
-        console.error('Error retrieving messages:', error);
+        console.error('❌ Error retrieving messages:', error);
         res.status(500).json({ error: 'Failed to retrieve messages' });
     }
 };
+
+
 
 
 

@@ -19,8 +19,9 @@ const messagesContainer = document.querySelector(".chat-block-content");
 let currentPage = 1;
 let isFetching = false;
 let hasMoreMessages = true;
-let isFirstLoad = false;
 let lastRenderedDate = null;
+let isFirstLoad  = true;
+
 
 var selfUserId = null;
 var selectedChat = null;
@@ -34,8 +35,6 @@ function getCookie(name) {
     const cookies = document.cookie.split('; ');
     for (let cookie of cookies) {
         const [key, value] = cookie.split('=');
-        console.log(key);
-        console.log(value);
         if (key === name) {
             return decodeURIComponent(value);
         }
@@ -49,7 +48,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 addChatButton.addEventListener('click', () => {
-    console.log('clicked');
     modal.style.display = 'flex';
 });
 
@@ -87,7 +85,6 @@ addUserToChatButton.addEventListener('click', async () => {
 createChatButton.addEventListener('click', async () => {
     try {
         var chatType = participants.length > 1 ? "group" : "private";
-        console.log(chatType, participants.length);
         const response = await fetch('/chats/', {
             method: 'POST',
             headers: {
@@ -104,7 +101,6 @@ createChatButton.addEventListener('click', async () => {
         participantsListElement.innerHTML = "";
 
         const responseJSON = await response.json();
-        console.log(response.status, responseJSON);
         
         createChatResultElement.className = "";
         createChatResultElement.style.display = "block";
@@ -231,7 +227,6 @@ async function changeSelectedChat(newSelectedChat, chatData) {
                     lastMessageTimestamp = chatData.messages[chatData.messages.length - 1].createdAt;
                 }
             } else {
-                console.log(response.status);
                 window.location.href = "/messenger"
                 return;
             }
@@ -254,7 +249,6 @@ async function changeSelectedChat(newSelectedChat, chatData) {
 }
 
 function renderChatHeader(chatData) {
-    console.log(`chat data ${chatData}`)
     const headerContainer = document.querySelector(".chat-block-header");
     try {
         headerContainer.innerHTML = ""; 
@@ -294,21 +288,13 @@ function renderChatHeader(chatData) {
     header.appendChild(textInfoBlock);
     header.appendChild(menuBlock);
 
-    console.log(header);
-    console.log(headerContainer);
-
     headerContainer.appendChild(header);
     headerContainer.style.display = "flex";
 }
 
 
-function renderChatMessages(messages, append = false) {
-    console.log("Messages to render:", messages);
-    
-    const messagesContainer = document.querySelector(".chat-block-content");
-
+function renderChatMessages(messages, append = false, prepend = false) {
     if (!messagesContainer) {
-        console.error("Error: Messages container not found!");
         return;
     }
 
@@ -316,39 +302,35 @@ function renderChatMessages(messages, append = false) {
 
     if (!append) {
         messagesContainer.innerHTML = "";
-        lastRenderedDate = null; // Сброс даты при полной загрузке чата
+        lastRenderedDate = null; 
     }
 
-    const existingMessageIds = new Set(
-        [...messagesContainer.children].map(msg => msg.dataset.messageId)
-    );
-
+    let lastDate = null;
+    
+    const previousScrollHeight = messagesContainer.scrollHeight;
+    
     messages.forEach(message => {
-        if (existingMessageIds.has(message._id)) {
-            console.log("Skipping duplicate message:", message);
+        if (document.querySelector(`[data-message-id="${message._id}"]`)) {
             return;
         }
-
-        console.log("Rendering message:", message);
 
         const messageDate = new Date(message.createdAt);
         const formattedDate = messageDate.toLocaleDateString();
 
-        // ✅ Добавляем системное сообщение с датой **только если день изменился**
-        if (lastRenderedDate !== formattedDate) {
-            const systemMessageElement = document.createElement("div");
-            systemMessageElement.classList.add("message", "system-message");
-            systemMessageElement.textContent = formattedDate;
+        // if (lastDate !== formattedDate) {
+        //     // const systemMessageElement = document.createElement("div");
+        //     // systemMessageElement.classList.add("message", "system-message");
+        //     // systemMessageElement.textContent = formattedDate;
 
-            messagesContainer.appendChild(systemMessageElement);
-            lastRenderedDate = formattedDate; // Обновляем последнюю рендеренную дату
-        }
+        //     prepend ? messagesContainer.prepend(systemMessageElement) : messagesContainer.appendChild(systemMessageElement);
+        //     lastDate = formattedDate;
+        // }
 
         const messageElement = document.createElement("div");
         messageElement.dataset.messageId = message._id;
+        messageElement.dataset.createdAt = message.createdAt;
 
         const senderId = message.sender?._id || message.sender;
-        console.log("Processed sender ID:", senderId);
 
         if (senderId === selfUserId) {
             messageElement.classList.add("message", "outcome-message");
@@ -367,32 +349,19 @@ function renderChatMessages(messages, append = false) {
         messageElement.appendChild(contentElement);
         messageElement.appendChild(infoElement);
 
-        if (senderId === selfUserId && !message.deleted) {
-            const actionButtons = document.createElement("div");
-            actionButtons.classList.add("message-actions");
-
-            const editButton = document.createElement("button");
-            editButton.classList.add("edit-message-btn");
-            editButton.textContent = "✏️";
-            editButton.addEventListener("click", () => editMessage(message._id, contentElement));
-
-            const deleteButton = document.createElement("button");
-            deleteButton.classList.add("delete-message-btn");
-            deleteButton.textContent = "🗑️";
-            deleteButton.addEventListener("click", () => deleteMessage(message._id, messageElement));
-
-            actionButtons.appendChild(editButton);
-            actionButtons.appendChild(deleteButton);
-            messageElement.appendChild(actionButtons);
+        if (prepend) {
+            messagesContainer.prepend(messageElement);
+        } else {
+            messagesContainer.appendChild(messageElement);
         }
-
-        messagesContainer.appendChild(messageElement);
     });
 
-    scrollToBottom();
+    if (prepend) {
+        requestAnimationFrame(() => {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight - previousScrollHeight;
+        });
+    }
 }
-
-
 
 
 async function editMessage(messageId, contentElement) {
@@ -453,7 +422,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (response.status === 200 && responseJSON.status === "success") {
             chatsList = responseJSON.chats;
         } else {
-            console.log(`Chats loading error: <${response.status}> ${responseJSON}`);
             return;
         }
         
@@ -490,7 +458,6 @@ sendMessageButton.addEventListener("click", async () => {
             const newMessage = responseJSON.savedMessage;
             renderChatMessages([newMessage], true);
             lastMessageTimestamp = newMessage.createdAt;
-            console.log(lastMessageTimestamp);
 
             scrollToBottom();
         } else {
@@ -512,43 +479,37 @@ async function pollMessages() {
 
     try {
         const url = `/messages/?chatId=${chatId}&lastMessageTimestamp=${lastMessageTimestamp}`;
-        console.log("📡 Polling messages from:", url);
 
         const response = await fetch(url, { method: 'GET' });
         const responseJSON = await response.json();
 
         if (response.status === 200 && responseJSON.status === "success") {
             if (responseJSON.messagesList.length > 0) {
-                console.log("📩 Поллинг: пришли новые сообщения!", responseJSON.messagesList);
-
                 updateChatMessages(responseJSON.messagesList);
 
-                // 🔥 Берём **самую последнюю дату**, а не просто `lastMessageTimestamp`
                 const lastMessage = responseJSON.messagesList[responseJSON.messagesList.length - 1];
 
                 const createdAt = lastMessage.updatedAt || lastMessage.createdAt; 
                 if (createdAt) {
                     const parsedDate = new Date(createdAt);
                     if (!isNaN(parsedDate.getTime())) {
-                        // ✅ Обновляем lastMessageTimestamp **только если он новее**
                         if (!lastMessageTimestamp || new Date(lastMessageTimestamp) < parsedDate) {
                             lastMessageTimestamp = parsedDate.toISOString();
-                            console.log("✅ lastMessageTimestamp обновлён:", lastMessageTimestamp);
                         }
                     } else {
-                        console.error("❌ Некорректный формат времени:", createdAt);
+                        console.error(createdAt);
                     }
                 } else {
-                    console.error("⚠️ ВНИМАНИЕ: `updatedAt` и `createdAt` отсутствуют!", lastMessage);
+                    console.error(lastMessage);
                 }
             } else {
-                console.log("🛑 Поллинг: новых сообщений нет.");
+
             }
         } else {
             console.log(`Polling error: ${response.status}`, responseJSON);
         }
     } catch (error) {
-        console.error("❌ Ошибка при поллинге сообщений:", error);
+        console.error("Polling error:", error);
     }
 }
 
@@ -559,14 +520,11 @@ setInterval(pollMessages, 3000);
 async function pollChats() {
     try {
         const url = `/chats/` + (lastChatTimestamp ? `?lastChatTimestamp=${lastChatTimestamp}` : "");
-        console.log("Polling new chats from:", url);
 
         const response = await fetch(url, { method: 'GET' });
         const responseJSON = await response.json();
 
         if (response.status === 200 && responseJSON.status === "success") {
-            console.log("Polled chats:", responseJSON.chats);
-
             if (responseJSON.chats.length > 0) {
                 renderChats(responseJSON.chats, true);
 
@@ -582,8 +540,6 @@ async function pollChats() {
 
 
 function renderChats(chats, append = false) {
-    console.log("Chats to render:", chats);
-
     const chatContainer = document.querySelector(".chats-list");
     if (!append) {
         chatContainer.innerHTML = "";
@@ -595,7 +551,6 @@ function renderChats(chats, append = false) {
 
     chats.forEach(chat => {
         if (existingChatIds.has(chat._id)) {
-            console.log("Skipping duplicate chat:", chat);
             return;
         }
 
@@ -612,7 +567,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const responseJSON = await response.json();
 
         if (response.status === 200 && responseJSON.status === "success") {
-            console.log("Initial chats:", responseJSON.chats);
             renderChats(responseJSON.chats);
 
             if (responseJSON.chats.length > 0) {
@@ -662,10 +616,52 @@ function scrollToBottom() {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
-messagesContainer?.addEventListener('scroll', async () => {
-    if (messagesContainer.scrollTop <= 10 && hasMoreMessages && !isFetching) {
-        console.log("this is top");
-        isFetching = true;
+async function loadMessages(initialLoad = false) {
+    if (isFetching || !hasMoreMessages) return;
+    isFetching = true;
+
+    const chatId = selectedChat?.dataset?.chatId;
+    if (!chatId) {
+        isFetching = false;
+        return;
+    }
+
+    try {
+        const response = await fetch(`/messages/?chatId=${chatId}&page=${currentPage}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        const responseJSON = await response.json();
+
+        if (response.status === 200 && responseJSON.status === "success") {
+            const messages = responseJSON.messagesList;
+            hasMoreMessages = responseJSON.hasMore;
+
+            if (messages.length > 0) {
+                renderChatMessages(messages.reverse(), true, true); 
+                currentPage++;
+            }
+        } else {
+
+        }
+    } catch (error) {
 
     }
+
+    isFetching = false;
+}
+
+messagesContainer?.addEventListener('scroll', async () => {
+    if (messagesContainer.scrollTop <= 10 && hasMoreMessages && !isFetching) {
+        await loadMessages();
+    }
+});
+
+
+document.addEventListener('DOMContentLoaded', async () => {
+    if (!messagesContainer) {
+        return;
+    }
+    await loadMessages(true);
 });
