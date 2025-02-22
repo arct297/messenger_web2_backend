@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
-
 const Message = require('../models/message');
 const Chat = require('../models/chat');
+
+const { logAction } = require('../services/logService');
 
 exports.searchMessages = async (req, res) => {
     try {
@@ -41,7 +42,7 @@ exports.createMessage = async (req, res) => {
             return res.status(404).json({ error: 'Chat not found' });
         }
 
-        console.log(req.user)
+        console.log(req.user);
         if (!chat.participants.some(id => id.toString() === req.user.id)) {
             return res.status(403).json({ error: 'You are not a participant of this chat' });
         }
@@ -49,8 +50,10 @@ exports.createMessage = async (req, res) => {
         const newMessage = new Message({ sender, content, chat: chatId });
         const savedMessage = await newMessage.save();
 
+        await logAction('MESSAGE_SENT', sender, { messageId: savedMessage._id, chatId, content });
+
         res.status(201).json({
-            status : "success", 
+            status: "success",
             savedMessage
         });
     } catch (error) {
@@ -59,10 +62,9 @@ exports.createMessage = async (req, res) => {
     }
 };
 
-
 exports.getMessages = async (req, res) => {
     try {
-        let { chatId, page = 1 } = req.query; // Значение по умолчанию
+        let { chatId, page = 1 } = req.query;
         page = parseInt(page, 10);
 
         if (!chatId) {
@@ -97,9 +99,8 @@ exports.getMessages = async (req, res) => {
             });
         }
 
-        // ⚡️ Вычисляем страницу с конца:
         const totalPages = Math.ceil(totalMessages / pageSize);
-        const adjustedPage = totalPages - page; // page=1 → последняя страница, page=2 → предпоследняя
+        const adjustedPage = totalPages - page;
 
         let skip = (page - 1) * pageSize;
         skip = skip < 0 ? 0 : skip;
@@ -107,7 +108,7 @@ exports.getMessages = async (req, res) => {
         console.log(skip, pageSize)
 
         const messages = await Message.find({ chat: chatId })
-            .sort({ createdAt: -1 }) // ⚠️ Теперь сортируем в порядке создания (сначала старые)
+            .sort({ createdAt: -1 }) 
             .skip(skip)
             .limit(pageSize)
             .populate('sender', 'username');
@@ -116,7 +117,7 @@ exports.getMessages = async (req, res) => {
         res.status(200).json({
             status: "success",
             messagesList: messages.reverse(),
-            hasMore: adjustedPage > 0, // Есть ли ещё старые сообщения
+            hasMore: adjustedPage > 0, 
         });
 
     } catch (error) {
@@ -124,11 +125,6 @@ exports.getMessages = async (req, res) => {
         res.status(500).json({ error: 'Failed to retrieve messages' });
     }
 };
-
-
-
-
-
 
 
 exports.updateMessage = async (req, res) => {
@@ -195,16 +191,16 @@ exports.searchMessages = async (req, res) => {
         const { query, chatId } = req.query;
 
         if (!query) {
-            return res.status(400).json({ error: "Введите поисковый запрос" });
+            return res.status(400).json({ error: "Input request query" });
         }
 
         const filter = { $text: { $search: query } };
         if (chatId) {
-            filter.chat = chatId; // Искать в конкретном чате, если указан
+            filter.chat = chatId; 
         }
 
         const messages = await Message.find(filter)
-            .sort({ createdAt: -1 }) // Последние сообщения первыми
+            .sort({ createdAt: -1 }) 
             .populate('sender', 'username');
 
         res.status(200).json({
@@ -213,9 +209,8 @@ exports.searchMessages = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Ошибка поиска сообщений:", error);
-        res.status(500).json({ error: "Ошибка при поиске сообщений" });
+        console.error("Search messages error:", error);
+        res.status(500).json({ error: "Search messages error" });
     }
 };
-
 

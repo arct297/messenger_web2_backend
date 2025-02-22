@@ -157,6 +157,8 @@ exports.createChat = async (req, res) => {
         const newChat = new Chat({ title, participants: participantsIds, chatType, avatar });
         const savedChat = await newChat.save();
 
+        await logAction('CHAT_CREATED', creator, { chatId: newChat._id, participants });
+
         return res.status(201).json({ 
             status: "success", 
             message: "Chat created",
