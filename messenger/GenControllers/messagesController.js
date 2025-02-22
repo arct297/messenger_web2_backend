@@ -1,8 +1,7 @@
 const mongoose = require('mongoose');
-
 const Message = require('../models/message');
 const Chat = require('../models/chat');
-
+const { logAction } = require('../services/logService');
 
 exports.createMessage = async (req, res) => {
     try {
@@ -22,7 +21,7 @@ exports.createMessage = async (req, res) => {
             return res.status(404).json({ error: 'Chat not found' });
         }
 
-        console.log(req.user)
+        console.log(req.user);
         if (!chat.participants.some(id => id.toString() === req.user.id)) {
             return res.status(403).json({ error: 'You are not a participant of this chat' });
         }
@@ -30,8 +29,11 @@ exports.createMessage = async (req, res) => {
         const newMessage = new Message({ sender, content, chat: chatId });
         const savedMessage = await newMessage.save();
 
+        // Логируем отправку сообщения
+        await logAction('MESSAGE_SENT', sender, { messageId: savedMessage._id, chatId, content });
+
         res.status(201).json({
-            status : "success", 
+            status: "success",
             savedMessage
         });
     } catch (error) {
@@ -39,7 +41,6 @@ exports.createMessage = async (req, res) => {
         res.status(500).json({ error: 'Failed to create message' });
     }
 };
-
 
 exports.getMessages = async (req, res) => {
     try {
@@ -171,5 +172,4 @@ exports.deleteMessage = async (req, res) => {
         res.status(500).json({ error: 'Failed to delete message' });
     }
 };
-
 

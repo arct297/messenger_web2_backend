@@ -5,6 +5,7 @@ const emailService = require('../services/emailService');
 const User = require('../models/user');
 const Session = require('../models/session');
 const tokenService = require('../services/tokenService');
+const { logAction } = require('../services/logService');
 
 exports.drawSignUpPage = (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'frontend', 'SignupPage.html'));
@@ -32,6 +33,8 @@ exports.signUpUser = async (req, res) => {
         const verificationLink = `https://5fb3-2a0d-b201-43-db51-9ce9-d75-c853-7c3c.ngrok-free.app/auth/confirm?email=${email}&code=${verificationCode}`;
         console.log(verificationLink);
         await emailService.sendVerificationEmail(email, verificationLink);
+
+        await logAction('SIGNUP', newUser._id, { username, email, ip: req.ip, userAgent: req.headers['user-agent'] });
 
         res.status(201).json({ message: 'Signup successful. Check your email to verify.', code: 201 });
 
@@ -106,6 +109,9 @@ exports.loginUser = async (req, res) => {
             sameSite: 'Strict',
         });
 
+        await logAction('LOGIN', existingUser._id, { login: existingUser.login, ip: req.ip, userAgent: req.headers['user-agent'] });
+
+
         return res.status(200).json({ message: 'User logged in successfully', status : "success", code: 200 });
     } catch {
         res.status(500).json({ message: 'Internal server error', status : "error", code: 500 });
@@ -119,6 +125,9 @@ exports.logOut = async (req, res) => {
 
         res.clearCookie('accessToken', { httpOnly: true, sameSite: 'Strict' });
         res.clearCookie('refreshToken', { httpOnly: true, sameSite: 'Strict' });
+        await logAction('LOGOUT', req.user.id);
+
+        await logAction('LOGOUT', req.user.id, { ip: req.ip, userAgent: req.headers['user-agent'] });
 
         res.redirect("/auth/login");
     } catch (error) {
