@@ -3,6 +3,8 @@ const Message = require('../models/message');
 const User = require('../models/user')
 const mongoose = require('mongoose');
 
+const { logAction } = require('../services/logService');
+
 
 exports.getChatList = async (req, res) => {
     try {

@@ -36,15 +36,13 @@ searchInput.addEventListener("input", async () => {
     const query = searchInput.value.trim();
 
     if (!query) {
-        console.log("Поле поиска очищено, загружаем все сообщения...");
         
         if (selectedChat) {
-            await loadMessages(true); // Перезагружаем все сообщения в текущем чате
+            await loadMessages(true); 
         }
         return;
     }
 
-    console.log("Поиск сообщений:", query);
     await searchMessages(query);
 });
 
@@ -395,6 +393,25 @@ function renderChatMessages(messages, append = false, prepend = false) {
 
         messageElement.appendChild(contentElement);
         messageElement.appendChild(infoElement);
+
+        if (senderId === selfUserId && !message.deleted) {
+            const actionButtons = document.createElement("div");
+            actionButtons.classList.add("message-actions");
+
+            const editButton = document.createElement("button");
+            editButton.classList.add("edit-message-btn");
+            editButton.textContent = "✏️";
+            editButton.addEventListener("click", () => editMessage(message._id, contentElement));
+
+            const deleteButton = document.createElement("button");
+            deleteButton.classList.add("delete-message-btn");
+            deleteButton.textContent = "🗑️";
+            deleteButton.addEventListener("click", () => deleteMessage(message._id, messageElement));
+
+            actionButtons.appendChild(editButton);
+            actionButtons.appendChild(deleteButton);
+            messageElement.appendChild(actionButtons);
+        }
 
         if (prepend) {
             messagesContainer.prepend(messageElement);

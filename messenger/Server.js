@@ -8,7 +8,7 @@ const chatRoutes = require('./GenRoutes/chats');
 const messageRoutes = require('./GenRoutes/messages');
 const userRoutes = require('./GenRoutes/users');
 const messengerRoutes = require('./GenRoutes/messenger');
-
+const adminRoutes = require('./GenRoutes/admin');
 
 
 const app = express();
@@ -56,6 +56,7 @@ app.use('/auth', authRoutes);
 app.use('/chats', chatRoutes); 
 app.use('/users', userRoutes)
 app.use('/messenger', messengerRoutes);
+app.use('/admin', adminRoutes);
 
 
 const settingsRoutes = require('./GenRoutes/settings');

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Hurricane - log analysis</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background-color: #f8f8f8;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Log analysis</h1>
+    <table id="logsTable">
+      <thead>
+        <tr>
+          <th>Event</th>
+          <th>amount</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      fetch('/admin/log')
+        .then(response => response.json())
+        .then(result => {
+          if(result.success) {
+            const stats = result.data;
+            const tbody = document.querySelector('#logsTable tbody');
+            tbody.innerHTML = '';
+            for (const event in stats) {
+              const row = document.createElement('tr');
+              
+              const cellEvent = document.createElement('td');
+              cellEvent.textContent = event;
+              row.appendChild(cellEvent);
+              
+              const cellCount = document.createElement('td');
+              cellCount.textContent = stats[event];
+              row.appendChild(cellCount);
+              
+              tbody.appendChild(row);
+            }
+          } else {
+            console.error('Error');
+          }
+        })
+        .catch(error => {
+          console.error('Request Error:', error);
+        });
+    });
+  </script>
+</body>
+</html>
