@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="search.css">
+    <title>Search Interface</title>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Chat Application</h1>
+            <div class="universal-search">
+                <input type="text" id="search-input" placeholder="Search chats, messages, contacts..." autocomplete="off">
+                <button id="search-button">🔍</button>
+            </div>
+            <div class="filters">
+                <label for="filter-chats">
+                    <input type="checkbox" id="filter-chats" checked> Chats
+                </label>
+                <label for="filter-messages">
+                    <input type="checkbox" id="filter-messages" checked> Messages
+                </label>
+                <label for="filter-contacts">
+                    <input type="checkbox" id="filter-contacts" checked> Contacts
+                </label>
+            </div>
+            <div id="autocomplete-suggestions" class="suggestions"></div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <h2>Search Results:</h2>
+            <div id="search-results" class="results"></div>
+        </div>
+    </main>
+
+    <script src="search.js"></script>
+</body>
+</html>
