@@ -1,4 +1,8 @@
-node_modules/
+package-lock.json
 
 *.zip
 
+config/
+
+node_modules/
+messenger/node_modules/

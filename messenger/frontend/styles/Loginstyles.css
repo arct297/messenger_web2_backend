@@ -79,3 +79,9 @@ p{
     align-items: center;
     justify-content: center;
 }
+
+#result {
+    padding: 0;
+    display: none;
+    color: rgb(231, 68, 68);
+}

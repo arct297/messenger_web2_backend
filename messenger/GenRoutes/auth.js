@@ -1,9 +1,19 @@
 const express = require('express');
 const router = express.Router();
-const { loginUser, signUpUser } = require('../GenControllers/authController');
+const { loginUser, signUpUser, drawSignUpPage, drawLogInPage, logOut, confirmEmail } = require('../GenControllers/authController');
+const checkLoginData = require('../middlewares/login');
+const checkSignUpData = require('../middlewares/signup');
 
-router.post('/login', loginUser);
+const authenticate = require('../middlewares/authenticate')
 
-router.post('/signup', signUpUser);
+router.get('/login', drawLogInPage);
+router.post('/login', checkLoginData, loginUser);
+
+router.get('/signup', drawSignUpPage);
+router.post('/signup', checkSignUpData, signUpUser);
+
+router.get('/confirm', confirmEmail);
+
+router.post('/logout', authenticate, logOut);
 
 module.exports = router;
